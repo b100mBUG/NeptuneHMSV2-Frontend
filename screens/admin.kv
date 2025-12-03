@@ -1,0 +1,243 @@
+<AdminScreen>:
+    name: "admin"
+    on_enter:
+        root.show_patients()
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    MDBoxLayout:
+        orientation: "vertical"
+        MDBoxLayout:
+            size_hint_y: .1
+            padding: dp(10)
+            spacing: dp(10)
+            MDLabel:
+                text: "NeptuneHMS"
+                size_hint_y: None
+                height: dp(40)
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "navy"
+                theme_font_size: "Custom"
+                font_size: sp(30)
+            MDCard:
+                radius: [30,]
+                size_hint_y: None
+                height: dp(60)
+                style: "outlined"
+                MDRelativeLayout:
+                    MDIconButton:
+                        icon: "cog"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                        on_release: root.settings_form()
+                        pos_hint: {"center_y":.5, "center_x":.2}
+                    MDIconButton:
+                        on_release: root.plan_form()
+                        icon: "information-outline"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                        pos_hint: {"center_y":.5, "center_x":.5}
+                    MDIconButton:
+                        on_release: root.help_form()
+                        icon: "help"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                        pos_hint: {"center_y":.5, "center_x":.8}
+            
+            MDCard:
+                radius: [60]
+                size_hint: None, None
+                size: dp(60), dp(60)
+                on_release: root.manager.current = "home"
+                FitImage:
+                    source: f"{root.image_path}/admin.png"
+                    radius: [60]
+                    keep_ratio: True
+                    allow_stretch: True
+
+        MDDivider:
+        MDBoxLayout:
+            size_hint_y: .9
+
+            MDNavigationRail:
+                size_hint_x: .1
+                orientation: "vertical"
+                anchor: "bottom"
+                spacing: dp(10)
+
+                MDNavigationRailFabButton:
+                    icon: "chart-line"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    theme_bg_color: "Custom"
+                    md_bg_color: "white"
+                    on_release: root.show_snack("This Feature is being updated. Check it out in the next version")
+
+                MDNavigationRailItem:
+                    on_release: root.show_patients()
+                    MDNavigationRailItemIcon:
+                        icon: "account-heart"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Patients"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+
+                MDNavigationRailItem:
+                    on_release: root.show_workers()
+                    MDNavigationRailItemIcon:
+                        icon: "account-circle-outline"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Personel"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_drugs()
+                    MDNavigationRailItemIcon:
+                        icon: "pill"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Pharmacy"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_diagnosis()
+                    MDNavigationRailItemIcon:
+                        icon: "stethoscope"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Diagnoses"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_prescriptions()
+                    MDNavigationRailItemIcon:
+                        icon: "medical-bag"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Prescriptions"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_appointments()
+                    MDNavigationRailItemIcon:
+                        icon: "clock"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Appointments"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_services()
+                    MDNavigationRailItemIcon:
+                        icon: "toolbox"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Services"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+
+                MDNavigationRailItem:
+                    on_release: root.show_tests()
+                    MDNavigationRailItemIcon:
+                        icon: "flask"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Lab Tests"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_requests()
+                    MDNavigationRailItemIcon:
+                        icon: "clipboard-plus"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Lab Requests"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                
+                MDNavigationRailItem:
+                    on_release: root.show_results()
+                    MDNavigationRailItemIcon:
+                        icon: "clipboard-check"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                    MDNavigationRailItemLabel:
+                        text: "Lab Results"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+
+
+            MDDivider:
+                orientation: "vertical"
+            MDBoxLayout:
+                size_hint_x: .7
+                orientation: "vertical"
+                padding: dp(10)
+                MDBoxLayout:
+                    spacing: dp(10)
+                    padding: dp(10)
+                    size_hint_y: None
+                    height: dp(60)
+                    MDTextField:
+                        id: search_field
+                        mode: "filled"
+                        pos_hint: {"center_y":.5}
+                        MDTextFieldHintText:
+                            text: "Find..."
+                    MDFabButton:
+                        id: add_btn
+                        pos_hint: {"center_y":.5}
+                        icon: "plus"
+                    MDFabButton:
+                        id: sort_btn
+                        pos_hint: {"center_y":.5}
+                        icon: "sort"
+                Widget:
+                    size_hint_y: None
+                    height: dp(20)
+                RecycleView:
+                    id: rec_view
+                    scroll_type: ["bars", "content"]
+                    bar_width: 10
+                    size_hint: 1, 1
+                    RecycleBoxLayout:
+                        id: rec_box
+                        default_size: None, dp(50)
+                        default_size_hint: 1, None
+                        orientation: "vertical"
+                        padding: dp(10)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+            MDDivider:
+                orientation: "vertical"
+            MDBoxLayout:
+                size_hint_x: .3
+                id: disp_view
+                padding: dp(10)
+                spacing: dp(10)
+                orientation: "vertical"
+            MDDivider:
+                orientation: "vertical"
+            

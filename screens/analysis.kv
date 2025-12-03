@@ -1,0 +1,29 @@
+<AnalysisScreen>:
+    name: "analysis"
+
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            size_hint_y: .1
+            MDTopAppBarTitle:
+                text: "NeptuneHMS (Analysis)"
+                theme_text_color: "Custom"
+                text_color: "navy"
+                theme_font_size: "Custom"
+                font_size: sp(30)
+                bold: True
+            MDTopAppBarTrailingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "logout"
+                    theme_icon_color: "Custom"
+                    icon_color: "red"
+                    on_release: root.manager.current = "admin"
+        
+        MD

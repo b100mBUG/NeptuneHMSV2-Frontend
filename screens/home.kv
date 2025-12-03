@@ -1,0 +1,332 @@
+#:import Clock kivy.clock.Clock
+
+<HomeScreen>:
+    name: "home"
+    on_enter: 
+        Clock.schedule_once(root.hospital_signin_form, 2)
+        root.check_expiry()
+        
+    canvas.before:
+        Color:
+            rgba: .3, .5, .9, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    MDFloatLayout:
+        MDBoxLayout:
+            size_hint_y: None
+            height: dp(40)
+            pos_hint: {"top":.95}
+            padding: dp(10)
+            MDLabel:
+                text: "NeptuneHMS 2.0"
+                size_hint_y: None
+                height: dp(40)
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "white"
+                theme_font_size: "Custom"
+                font_size: sp(50)
+        MDBoxLayout:
+            orientation: "vertical"
+            pos_hint: {"center_x":.8, "top":.95}
+            size_hint_y: None
+            height: dp(150)
+            padding: dp(10)
+            size_hint_x: .4
+            MDLabel:
+                text: "Hospital"
+                size_hint_y: None
+                height: dp(40)
+                bold: True
+                id: hospital_name
+                halign: "right"
+                theme_text_color: "Custom"
+                text_color: "white"
+                theme_font_size: "Custom"
+                font_size: sp(20)
+            MDLabel:
+                text: "example@gmail.com"
+                halign: "right"
+                size_hint_y: None
+                id: hospital_email
+                height: dp(40)
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "white"
+                theme_font_size: "Custom"
+                font_size: sp(20)
+            MDLabel:
+                text: "0737841451"
+                size_hint_y: None
+                halign: "right"
+                height: dp(40)
+                id: hospital_phone
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "white"
+                theme_font_size: "Custom"
+                font_size: sp(20)
+            MDIconButton:
+                icon: "logout"
+                on_release: root.confirm_logout_form()
+                theme_icon_color: "Custom"
+                icon_color: "red"
+                pos_hint: {"center_x":.9}
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: dp(25)
+            padding: dp(10)
+            size_hint_x: .6
+            pos_hint: {"center_x":.5, "center_y":.5}
+            MDCard:
+                radius: [120,]
+                size_hint: None, None
+                size: dp(120), dp(120)
+                pos_hint: {"center_x":.5}
+
+                FitImage:
+                    radius: [120,]
+                    source: ""
+                    id: disp_img
+                    allow_stretch: True
+                    keep_ratio: True
+            MDLabel:
+                text: "Role"
+                size_hint_y: None
+                halign: "center"
+                height: dp(40)
+                id: role_label
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "white"
+                theme_font_size: "Custom"
+                font_size: sp(30)
+            MDBoxLayout:
+                spacing: dp(10)
+                size_hint_x: .6
+                size_hint_y: None
+                height: dp(40)
+                pos_hint: {"center_x":.5}
+                MDTextField:
+                    mode: "filled"
+                    id: username
+                    MDTextFieldHintText:
+                        text: "Username"
+                MDIconButton:
+                    icon: "chevron-down"
+                    on_release: root.populate_workers()
+                    theme_icon_color: "Custom"
+                    icon_color: "white"
+            MDTextField:
+                mode: "filled"
+                pos_hint: {"center_x":.5}
+                id: password
+                on_text_validate: root.signin()
+                size_hint_x: .6
+                password: True
+                MDTextFieldHintText:
+                    text: "Password"
+            MDBoxLayout:
+                spacing: dp(10)
+                size_hint_x: .6
+                size_hint_y: None
+                height: dp(40)
+                pos_hint: {"center_x":.5}
+                MDCheckbox:
+                    size_hint_x: .1
+                    on_active: root.toggle_show_pass(self.active)
+                    size_hint: None, None
+                    size: dp(40), dp(40)
+                    pos_hint: {"center_y":.5}
+                    theme_bg_color: "Custom"
+                    md_bg_color: "white"
+
+                MDLabel:
+                    text: "Show password?"
+                    size_hint_x: .9
+                    size_hint_y: None
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "white"
+                    theme_font_size: "Custom"
+                    font_size: sp(18)
+            Widget:
+                size_hint_y: None
+                height: dp(100)
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: dp(20)
+            size_hint_x: .2
+            padding: dp(10)
+            pos_hint: {"left":1, "bottom": 1}
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.create_role("Admin", "Administrator", "admin.png")
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    pos_hint: {"center_y":.5}
+                    radius: [45,]
+                    FitImage:
+                        source: f"{root.image_path}/admin.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Administrator"
+                    size_hint_x: .9
+                    shorten: True
+                    shorten_from: "right"
+                    size_hint_y: None
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.create_role("Receptionist", "Receptionist", "rec.png")
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    pos_hint: {"center_y":.5}
+                    radius: [45,]
+                    FitImage:
+                        source: f"{root.image_path}/rec.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Receptionist"
+                    size_hint_x: .9
+                    size_hint_y: None
+                    shorten: True
+                    shorten_from: "right"
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.create_role("Pharmacist", "Pharmacist", "pharma.png")
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    pos_hint: {"center_y":.5}
+                    radius: [45,]
+                    FitImage:
+                        source: f"{root.image_path}/pharma.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Pharmacist"
+                    size_hint_x: .9
+                    shorten: True
+                    shorten_from: "right"
+                    size_hint_y: None
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.create_role("Doctor", "Doctor", "doc.png")
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    pos_hint: {"center_y":.5}
+                    radius: [45,]
+                    FitImage:
+                        source: f"{root.image_path}/doc.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Doctor"
+                    size_hint_x: .9
+                    size_hint_y: None
+                    shorten: True
+                    shorten_from: "right"
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.create_role("Lab Tech", "Lab Tech", "tech.png")
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    pos_hint: {"center_y":.5}
+                    radius: [45,]
+                    FitImage:
+                        source: f"{root.image_path}/tech.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Lab Tech"
+                    size_hint_x: .9
+                    size_hint_y: None
+                    shorten: True
+                    shorten_from: "right"
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+            MDCard:
+                size_hint_y: None
+                height: dp(50)
+                spacing: dp(10)
+                padding: dp(3)
+                style: "outlined"
+                on_release: root.manager.current = "pos"
+                MDCard:
+                    size_hint: None, None
+                    size: dp(45), dp(45)
+                    radius: [45,]
+                    pos_hint: {"center_y":.5}
+                    FitImage:
+                        source: f"{root.image_path}/pos.png"
+                        radius: [45,]
+                        keep_ratio: True
+                        allow_stretch: True
+                MDLabel:
+                    text: "Over The Counter"
+                    size_hint_x: .9
+                    size_hint_y: None
+                    shorten: True
+                    shorten_from: "right"
+                    height: dp(40)
+                    theme_text_color: "Custom"
+                    text_color: "navy"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+
+                    

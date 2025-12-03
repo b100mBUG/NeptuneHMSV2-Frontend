@@ -1,0 +1,106 @@
+<DoctorScreen>:
+    name: "doctor"
+    on_enter: root.show_diagnosis()
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            size_hint_y: .1
+            MDTopAppBarTitle:
+                text: "NeptuneHMS (Doctor)"
+                theme_text_color: "Custom"
+                text_color: "navy"
+                theme_font_size: "Custom"
+                font_size: sp(30)
+                bold: True
+            MDTopAppBarTrailingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "stethoscope"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    on_release: 
+                        disp_view.clear_widgets()
+                        root.show_diagnosis()
+                MDActionTopAppBarButton:
+                    icon: "medical-bag"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    on_release: 
+                        disp_view.clear_widgets()
+                        root.show_prescriptions()
+                MDActionTopAppBarButton:
+                    icon: "clipboard-plus"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    on_release: 
+                        disp_view.clear_widgets()
+                        root.show_requests()
+                MDActionTopAppBarButton:
+                    icon: "clipboard-check"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    on_release: 
+                        disp_view.clear_widgets()
+                        root.show_results()
+                MDActionTopAppBarButton:
+                    icon: "logout"
+                    theme_icon_color: "Custom"
+                    icon_color: "red"
+                    on_release: 
+                        disp_view.clear_widgets()
+                        root.manager.current = "home"
+        MDBoxLayout:
+            size_hint_y: .9
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_x: .7
+                padding: dp(10)
+                MDBoxLayout:
+                    spacing: dp(10)
+                    padding: dp(10)
+                    size_hint_y: None
+                    height: dp(60)
+                    MDTextField:
+                        id: search_field
+                        mode: "filled"
+                        pos_hint: {"center_y":.5}
+                        MDTextFieldHintText:
+                            text: "Find..."
+                    MDFabButton:
+                        id: add_btn
+                        pos_hint: {"center_y":.5}
+                        icon: "plus"
+                    MDFabButton:
+                        id: sort_btn
+                        pos_hint: {"center_y":.5}
+                        icon: "sort"
+                Widget:
+                    size_hint_y: None
+                    height: dp(20)
+                RecycleView:
+                    id: rec_view
+                    scroll_type: ["bars", "content"]
+                    bar_width: 10
+                    size_hint: 1, 1
+                    RecycleBoxLayout:
+                        id: rec_box
+                        default_size: None, dp(50)
+                        default_size_hint: 1, None
+                        orientation: "vertical"
+                        padding: dp(10)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+            MDDivider:
+                orientation: "vertical"
+            MDBoxLayout:
+                size_hint_x: .3
+                id: disp_view
+                padding: dp(10)
+                spacing: dp(10)
+                orientation: "vertical"

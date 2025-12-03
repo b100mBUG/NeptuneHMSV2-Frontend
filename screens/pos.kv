@@ -1,0 +1,271 @@
+<POSScreen>:
+    name: "pos"
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    MDBoxLayout:
+        orientation: "vertical"
+        MDBoxLayout:
+            padding: dp(10)
+            size_hint_y: .1
+            spacing: dp(10)
+            MDIconButton:
+            MDLabel:
+                text: "NeptuneHMS (OTC)"
+                size_hint_y: None
+                height: dp(40)
+                bold: True
+                theme_text_color: "Custom"
+                text_color: "navy"
+                theme_font_size: "Custom"
+                font_size: sp(30)
+            MDIconButton:
+                icon: "logout"
+                theme_icon_color: "Custom"
+                icon_color: "red"
+                on_release: root.manager.current = "home"
+        MDBoxLayout:
+            size_hint_y: .9
+            padding: dp(10)
+            spacing: dp(10)
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_x: .8
+                MDBoxLayout:
+                    size_hint_y: None
+                    height: dp(60)
+                    MDTextField:
+                        pos_hint: {"center_y":.5}
+                        size_hint_x: .7
+                        id: search_field
+                        MDTextFieldHintText:
+                            text: "Find..."
+                RecycleView:
+                    id: rec_view
+                    scroll_type: ["bars", "content"]
+                    bar_width: 10
+                    size_hint: 1, 1
+                    RecycleBoxLayout:
+                        id: rec_box
+                        default_size: None, dp(50)
+                        default_size_hint: 1, None
+                        orientation: "vertical"
+                        padding: dp(10)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                MDDivider:
+                MDBoxLayout:
+                    size_hint_y: None
+                    height: dp(80)
+                    spacing: dp(10)
+                    padding: dp(10)
+                    MDLabel:
+                        id: drug_name
+                        size_hint_x: .7
+                        text: "Drug Name"
+                        size_hint_y: None
+                        height: dp(40)
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        theme_font_size: "Custom"
+                        font_size: sp(20)
+                    MDTextField: 
+                        id: drug_qty
+                        size_hint_x: .3
+                        input_filter: "int"
+                        on_text_validate: root.compute_price()
+                        MDTextFieldHintText:
+                            text: "Quantity"
+                MDBoxLayout:
+                    spacing: dp(10)
+                    size_hint_y: None
+                    height: dp(70)
+                    padding: dp(10)
+                    MDBoxLayout:
+                        spacing: dp(10)
+                        pos_hint: {"center_y": .5}
+                        MDLabel:
+                            text: "QTY"
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .2
+                        MDLabel:
+                            text: "0"
+                            id: qty
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .8
+                    MDBoxLayout:
+                        spacing: dp(10)
+                        pos_hint: {"center_y": .5}
+                        MDLabel:
+                            text: "Price"
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .2
+                        MDLabel:
+                            text: "Ksh. 0.0"
+                            id: drug_price
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .8
+                    MDBoxLayout:
+                        spacing: dp(10)
+                        pos_hint: {"center_y": .5}
+                        MDLabel:
+                            text: "Total"
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .2
+                        MDLabel:
+                            text: "Ksh. 0.0"
+                            id: net_price
+                            size_hint_y: None
+                            height: dp(40)
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(20)
+                            size_hint_x: .8
+                MDFabButton:
+                    pos_hint: {"center_x":.9}
+                    on_release: root.show_calculator()
+                    icon: "calculator"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+
+            MDDivider:
+                orientation: "vertical"
+            MDBoxLayout:
+                size_hint_x: .25
+                orientation: "vertical"
+                spacing: dp(10)
+                padding: dp(10)
+                MDLabel:
+                    text: "Cart Preview"
+                    size_hint_y: None
+                    height: dp(40)
+                    halign: "center"
+                    bold: True
+                    theme_text_color: "Custom"
+                    text_color: "blue"
+                    theme_font_size: "Custom"
+                    font_size: sp(25)
+                    size_hint_x: .8
+                MDBoxLayout:
+                    spacing: dp(10)
+                    padding: dp(10)
+                    size_hint_y: None
+                    height: dp(40)
+                    MDLabel:
+                        text: "Item"
+                        halign: "center"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        bold: True
+                    MDLabel:
+                        text: "Qty"
+                        halign: "center"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        bold: True
+                    MDLabel:
+                        text: "Price"
+                        halign: "center"
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        bold: True
+                MDScrollView:
+                    MDGridLayout:
+                        id: cart_prev
+                        cols: 1
+                        padding: dp(10)
+                        spacing: dp(10)
+                        adaptive_height: True
+                MDBoxLayout:
+                    size_hint_y: None
+                    height: dp(60)
+                    spacing: dp(10)
+                    padding: dp(10)
+                    MDLabel:
+                        text: "Grand Total"
+                        size_hint_y: None
+                        height: dp(40)
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        theme_font_size: "Custom"
+                        font_size: sp(25)
+                    MDLabel:
+                        text: "Ksh. 0.0"
+                        id: grand_total
+                        size_hint_y: None
+                        height: dp(40)
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: "blue"
+                        theme_font_size: "Custom"
+                        font_size: sp(25)
+                MDBoxLayout:
+                    spacing: dp(15)
+                    padding: dp(15)
+                    size_hint_y: None
+                    height: dp(40)
+                    MDButton:
+                        id: next_sale_btn
+                        style: "filled"
+                        pos_hint: {"center_x":.5}
+                        theme_bg_color: "Custom"
+                        md_bg_color: "red"
+                        on_release: root.clear_cart()
+                        MDButtonText:
+                            text: "Clear"
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            bold: True
+                    Widget:
+                    MDButton:
+                        id: next_sale_btn
+                        on_release: root.sale_drugs()
+                        style: "filled"
+                        theme_bg_color: "Custom"
+                        md_bg_color: "green"
+                        pos_hint: {"center_x":.5}
+                        MDButtonText:
+                            text: "Next Sale"
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            bold: True
+
+

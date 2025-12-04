@@ -437,7 +437,7 @@
                                     md_bg_color: 0.88, 0.93, 0.97, 1   
 
                                     MDLabel:
-                                        text: "Selable"
+                                        text: "Sellable"
                                         theme_font_size: "Custom"
                                         font_size: sp(28)
                                         bold: True
@@ -446,7 +446,7 @@
                                         halign: "center"
 
                                     MDLabel:
-                                        id: selable_drugs_label
+                                        id: sellable_drugs_label
                                         text: "0"     
                                         theme_font_size: "Custom"
                                         font_size: sp(30)
@@ -454,6 +454,15 @@
                                         theme_text_color: "Custom"
                                         text_color: "purple"
                                         halign: "center"
+                        MDBoxLayout:
+                            size_hint_y: None
+                            height: dp(300)
+                            MDBoxLayout:
+                                id: drug_pie_chart
+                            MDDivider:
+                                orientation: "vertical"
+                            MDBoxLayout:
+                                id: drug_donut_chart
 
             
             MDDivider:

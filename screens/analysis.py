@@ -8,6 +8,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 from screens.patients import fetch_patients
+from screens.drugs import fetch_drugs
 from config import resource_path
 
 from datetime import datetime, timedelta
@@ -21,10 +22,22 @@ class AnalysisScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.patients = []
-        self.fetch_data()
+        self.drugs = []
+
+        self.expired_drugs = []
+        self.depleted_drugs = []
+        self.sellable_drugs = []
+        self.safe_drugs = []
+        self.available_drugs = []
+
+        self.fetch_patients_data()
+        self.fetch_drugs_data()
     
-    def fetch_data(self):
+    def fetch_patients_data(self):
         fetch_patients("all", "all", "desc", callback=self.on_patients_fetched)
+    
+    def fetch_drugs_data(self):
+        fetch_drugs("all", "all", "desc", callback=self.on_drugs_fetched)
     
     def on_patients_fetched(self, patients):
         if not patients:
@@ -32,6 +45,13 @@ class AnalysisScreen(MDScreen):
             return
         self.patients = patients
         self.start_patient_analysis()
+    
+    def on_drugs_fetched(self, drugs):
+        if not drugs:
+            self.show_snack("Drugs not found")
+            return
+        self.drugs = drugs
+        self.start_drug_analysis()
     
     def start_patient_analysis(self):
         if not self.patients:
@@ -49,7 +69,13 @@ class AnalysisScreen(MDScreen):
         self.ids.total_patients_label.text = self.human_readable(total)
     
     def analyse_new_patients(self):
-        new_pats = [pat for pat in self.patients if datetime.strptime(pat['date_added'], "%Y-%m-%d").date() <= datetime.today().date()]
+        today = datetime.today().date()
+        thirty_days_ago = today - timedelta(days=30)
+
+        new_pats = [
+            pat for pat in self.patients
+            if thirty_days_ago <= datetime.strptime(pat['date_added'], "%Y-%m-%d").date() <= today
+        ]
 
         self.ids.new_patients_label.text = self.human_readable(len(new_pats))
     
@@ -172,6 +198,116 @@ class AnalysisScreen(MDScreen):
         self.ids.monthly_patients.clear_widgets()
         self.ids.monthly_patients.add_widget(FigureCanvasKivyAgg(fig))
     
+    def start_drug_analysis(self):
+        if not self.drugs:
+            self.show_snack("No drugs to analyse")
+            return
+        self.analyse_all_drugs()
+        self.analyse_new_drugs()
+        self.analyse_expired_drugs()
+        self.analyse_safe_drugs()
+        self.analyse_available_drugs()
+        self.analyse_depleted_drugs()
+        self.analyse_sellable_drugs()
+        self.plot_drug_charts()
+    
+    def analyse_all_drugs(self):
+        all_drugs = len(self.drugs)
+        self.ids.total_drugs_label.text = self.human_readable(all_drugs)
+    
+    def analyse_new_drugs(self):
+        today = datetime.today().date()
+        thirty_days_ago = today - timedelta(days=30)
+
+        new_drugs = [
+            drug for drug in self.drugs
+            if thirty_days_ago <= datetime.strptime(drug['date_added'], "%Y-%m-%d").date() <= today
+        ]
+
+        self.ids.new_drugs_label.text = self.human_readable(len(new_drugs))
+    
+    def analyse_expired_drugs(self):
+        today = datetime.today().date()
+        expired_drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
+        
+        self.expired_drugs = expired_drugs
+
+        self.ids.expired_drugs_label.text = self.human_readable(len(expired_drugs))
+    
+    def analyse_safe_drugs(self):
+        today = datetime.today().date()
+        safe_drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() > today]
+        
+        self.safe_drugs = safe_drugs
+
+        self.ids.safe_drugs_label.text = self.human_readable(len(safe_drugs))
+
+    def analyse_available_drugs(self):
+        available_drugs = [drug for drug in self.drugs if drug["drug_quantity"] > 0]
+
+        self.available_drugs = available_drugs
+
+        self.ids.available_drugs_label.text = self.human_readable(len(available_drugs))
+    
+    def analyse_depleted_drugs(self):
+        depleted_drugs = [drug for drug in self.drugs if drug["drug_quantity"] <= 0]
+
+        self.depleted_drugs = depleted_drugs
+
+        self.ids.depleted_drugs_label.text = self.human_readable(len(depleted_drugs))
+    
+    def analyse_sellable_drugs(self):
+        today = datetime.today().date()
+        expired_drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
+
+        sellable_drugs  = [
+            drug 
+            for drug in self.drugs
+            if drug['drug_quantity'] > 0 and 
+            drug not in expired_drugs
+        ]
+
+        self.sellable_drugs = sellable_drugs
+
+        self.ids.sellable_drugs_label.text = self.human_readable(len(sellable_drugs))
+    
+    def plot_drug_charts(self):
+        pie_labels = ["Expired", "Safe", "Sellable"]
+        pie_sizes = [len(self.expired_drugs), len(self.safe_drugs), len(self.sellable_drugs)]
+        pie_colors = ["#E74C3C", "#2ECC71", "#3498DB"]  
+
+        fig1, ax1 = plt.subplots(figsize=(5,5), dpi=100)
+        wedges, texts, autotexts = ax1.pie(
+            pie_sizes,
+            labels=pie_labels,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=pie_colors,
+            wedgeprops={'edgecolor':'white'}
+        )
+        ax1.set_title("Drug Status Distribution", fontsize=14, fontweight='bold')
+
+        self.ids.drug_pie_chart.clear_widgets()
+        self.ids.drug_pie_chart.add_widget(FigureCanvasKivyAgg(fig1))
+
+        donut_labels = ["Available", "Depleted", "Sellable"]
+        donut_sizes = [len(self.available_drugs), len(self.depleted_drugs), len(self.sellable_drugs)]
+        donut_colors = ["#1ABC9C", "#F39C12", "#3498DB"]
+
+        fig2, ax2 = plt.subplots(figsize=(5,5), dpi=100)
+        wedges2, texts2, autotexts2 = ax2.pie(
+            donut_sizes,
+            labels=donut_labels,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=donut_colors,
+            wedgeprops={'edgecolor':'white', 'width':0.4}
+        )
+        ax2.set_title("Drug Availability Donut Chart", fontsize=14, fontweight='bold')
+
+        self.ids.drug_donut_chart.clear_widgets()
+        self.ids.drug_donut_chart.add_widget(FigureCanvasKivyAgg(fig2))
+
     def human_readable(self, num: int) -> str:
         if num < 1_000:
             return str(num)
@@ -194,6 +330,7 @@ class AnalysisScreen(MDScreen):
 
     def initialize_analysis(self):
         self.start_patient_analysis()
+        self.start_drug_analysis()
 
     def on_enter(self):
         self.initialize_analysis()

@@ -237,6 +237,223 @@
                             MDBoxLayout:
                                 id: monthly_patients
                         
+                        MDLabel:
+                            text: "Drugs"
+                            adaptive_height: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(28)
+                            bold: True
+                        MDScrollView:
+                            size_hint_y: None
+                            height: dp(150)
+                            bar_width: 0
+                            MDGridLayout:
+                                size_hint_x: None
+                                width: self.minimum_width
+                                adaptive_height: True
+                                rows: 1
+                                padding: dp(10)
+                                spacing: dp(10)
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Total"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "green"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: total_drugs_label
+                                        text: "0"      
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "green"
+                                        halign: "center"
+
+
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                    MDLabel:
+                                        text: "New"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "blue"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: new_drugs_label
+                                        text: "0" 
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "blue"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Expired"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "navy"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: expired_drugs_label
+                                        text: "0"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "navy"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Safe"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "teal"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: safe_drugs_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "teal"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Available"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "brown"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: available_drugs_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "brown"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                    MDLabel:
+                                        text: "Depleted"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: depleted_drugs_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                    MDLabel:
+                                        text: "Selable"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: selable_drugs_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
 
             
             MDDivider:

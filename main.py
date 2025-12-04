@@ -7,6 +7,7 @@ from screens.reception import ReceptionScreen
 from screens.pharmacy import PharmacyScreen
 from screens.lab import LabScreen
 from screens.doctor import DoctorScreen
+from screens.analysis import AnalysisScreen
 from screens.home import HomeScreen
 
 class NeptuneHMS(MDApp):
@@ -21,8 +22,9 @@ class NeptuneHMS(MDApp):
         self.sm.add_widget(PharmacyScreen(name='pharmacy'))
         self.sm.add_widget(LabScreen(name='lab'))
         self.sm.add_widget(DoctorScreen(name='doctor'))
+        self.sm.add_widget(AnalysisScreen(name="analysis"))
         self.sm.transition = FadeTransition()
-        self.sm.current = 'home'
+        self.sm.current = 'analysis'
         return self.sm
 if __name__ == '__main__':
     app = NeptuneHMS()

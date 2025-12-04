@@ -25,5 +25,226 @@
                     theme_icon_color: "Custom"
                     icon_color: "red"
                     on_release: root.manager.current = "admin"
-        
-        MD
+        MDBoxLayout:
+
+            MDBoxLayout:
+                size_hint_x: .7
+                orientation: "vertical"
+                padding: dp(10)
+                MDScrollView:
+                    MDGridLayout:
+                        cols: 1
+                        adaptive_height: True
+                        spacing: dp(10)
+                        MDLabel:
+                            text: "Patients"
+                            adaptive_height: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(28)
+                            bold: True
+                        MDScrollView:
+                            size_hint_y: None
+                            height: dp(150)
+                            bar_width: 0
+                            MDGridLayout:
+                                size_hint_x: None
+                                width: self.minimum_width
+                                adaptive_height: True
+                                rows: 1
+                                padding: dp(10)
+                                spacing: dp(10)
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Total"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "green"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: total_patients_label
+                                        text: "0"      
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "green"
+                                        halign: "center"
+
+
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                    MDLabel:
+                                        text: "New"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "blue"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: new_patients_label
+                                        text: "0" 
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "blue"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Adults"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "navy"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: adult_patients_label
+                                        text: "0"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "navy"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Children"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "teal"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: child_patients_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "teal"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+
+                                    MDLabel:
+                                        text: "Male"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "brown"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: male_patients_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "brown"
+                                        halign: "center"
+                                MDCard:
+                                    size_hint: None, None
+                                    size: dp(250), dp(100)
+                                    radius: dp(20)
+                                    orientation: "vertical"
+                                    padding: dp(20)
+                                    spacing: dp(10)
+                                    theme_bg_color: "Custom"
+                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                    MDLabel:
+                                        text: "Female"
+                                        theme_font_size: "Custom"
+                                        font_size: sp(28)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
+
+                                    MDLabel:
+                                        id: female_patients_label
+                                        text: "0"     
+                                        theme_font_size: "Custom"
+                                        font_size: sp(30)
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: "purple"
+                                        halign: "center"
+                        MDBoxLayout:
+                            padding: dp(10)
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: dp(500)
+                            MDBoxLayout:
+                                id: weekly_patients
+                            MDDivider:
+                                orientation: "vertical"
+                            MDBoxLayout:
+                                id: monthly_patients
+                        
+
+            
+            MDDivider:
+                orientation: "vertical"
+
+            MDBoxLayout:
+                size_hint_x: .3
+                orientation: "vertical"
+
+
+

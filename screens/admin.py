@@ -104,6 +104,7 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: patients_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_pat_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        
         def on_patients_fetched(patients):
             if not patients:
                 self.show_snack("Patients not found")

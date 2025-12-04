@@ -274,39 +274,67 @@ class AnalysisScreen(MDScreen):
     def plot_drug_charts(self):
         pie_labels = ["Expired", "Safe", "Sellable"]
         pie_sizes = [len(self.expired_drugs), len(self.safe_drugs), len(self.sellable_drugs)]
-        pie_colors = ["#E74C3C", "#2ECC71", "#3498DB"]  
+        if sum(pie_sizes) == 0: 
+            pie_sizes = [1,0,0]
+        pie_colors = ["#E74C3C", "#2ECC71", "#3498DB"] 
+        explode = (0.05, 0.05, 0.05)  
 
-        fig1, ax1 = plt.subplots(figsize=(5,5), dpi=100)
+        fig1, ax1 = plt.subplots(figsize=(6,6), dpi=120)
         wedges, texts, autotexts = ax1.pie(
             pie_sizes,
             labels=pie_labels,
             autopct='%1.1f%%',
             startangle=90,
             colors=pie_colors,
+            explode=explode,
+            shadow=False,  
             wedgeprops={'edgecolor':'white'}
         )
-        ax1.set_title("Drug Status Distribution", fontsize=14, fontweight='bold')
+
+        for autotext in autotexts:
+            autotext.set_color('white')
+            autotext.set_fontsize(11)
+            autotext.set_fontweight('bold')
+
+        ax1.set_title("Drug Status Distribution", fontsize=16, fontweight='bold', color="#34495E")
+        ax1.axis('equal')
+        fig1.tight_layout()
 
         self.ids.drug_pie_chart.clear_widgets()
         self.ids.drug_pie_chart.add_widget(FigureCanvasKivyAgg(fig1))
 
         donut_labels = ["Available", "Depleted", "Sellable"]
         donut_sizes = [len(self.available_drugs), len(self.depleted_drugs), len(self.sellable_drugs)]
+        if sum(donut_sizes) == 0:
+            donut_sizes = [1,0,0]
         donut_colors = ["#1ABC9C", "#F39C12", "#3498DB"]
+        explode_donut = (0.05, 0.05, 0.05)
 
-        fig2, ax2 = plt.subplots(figsize=(5,5), dpi=100)
+        fig2, ax2 = plt.subplots(figsize=(6,6), dpi=120)
         wedges2, texts2, autotexts2 = ax2.pie(
             donut_sizes,
             labels=donut_labels,
             autopct='%1.1f%%',
             startangle=90,
             colors=donut_colors,
-            wedgeprops={'edgecolor':'white', 'width':0.4}
+            explode=explode_donut,
+            shadow=False,
+            wedgeprops={'edgecolor':'white', 'width':0.4}  
         )
-        ax2.set_title("Drug Availability Donut Chart", fontsize=14, fontweight='bold')
+
+        for autotext in autotexts2:
+            autotext.set_color('magenta')
+            autotext.set_fontsize(11)
+            autotext.set_fontweight('bold')
+
+        ax2.set_title("Drug Availability", fontsize=16, fontweight='bold', color="#34495E")
+        ax2.axis('equal')
+        fig2.tight_layout()
 
         self.ids.drug_donut_chart.clear_widgets()
         self.ids.drug_donut_chart.add_widget(FigureCanvasKivyAgg(fig2))
+
+
 
     def human_readable(self, num: int) -> str:
         if num < 1_000:

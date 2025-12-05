@@ -9,6 +9,7 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 from screens.patients import fetch_patients
 from screens.drugs import fetch_drugs
+from screens.billings import fetch_billings
 from config import resource_path
 
 from datetime import datetime, timedelta
@@ -23,6 +24,7 @@ class AnalysisScreen(MDScreen):
         super().__init__(**kwargs)
         self.patients = []
         self.drugs = []
+        self.billings = []
 
         self.expired_drugs = []
         self.depleted_drugs = []
@@ -32,6 +34,7 @@ class AnalysisScreen(MDScreen):
 
         self.fetch_patients_data()
         self.fetch_drugs_data()
+        self.fetch_billings_data()
     
     def fetch_patients_data(self):
         fetch_patients("all", "all", "desc", callback=self.on_patients_fetched)
@@ -39,6 +42,18 @@ class AnalysisScreen(MDScreen):
     def fetch_drugs_data(self):
         fetch_drugs("all", "all", "desc", callback=self.on_drugs_fetched)
     
+    def fetch_billings_data(self):
+        print("Fetched!!")
+        fetch_billings("all", None, callback=self.on_billings_fetched)
+    
+    def on_billings_fetched(self, billings):
+        if not billings:
+            self.show_snack("Billings not found")
+            return
+        self.billings = billings
+        print("Billings: ", billings)
+        self.start_billings_analysis()
+
     def on_patients_fetched(self, patients):
         if not patients:
             self.show_snack("Patients not found")
@@ -334,7 +349,119 @@ class AnalysisScreen(MDScreen):
         self.ids.drug_donut_chart.clear_widgets()
         self.ids.drug_donut_chart.add_widget(FigureCanvasKivyAgg(fig2))
 
+    def start_billings_analysis(self):
+        if not self.billings:
+            self.show_snack("No billings to analyse")
+            return
+        self.compare_monthly_sales()
+        self.plot_monthly_revenue_waterfall()
+    
 
+    def compare_monthly_sales(self):
+        today = datetime.today()
+        current_month = today.month
+        current_year = today.year
+
+
+        if current_month == 1: 
+            last_month = 12
+            last_month_year = current_year - 1
+        else:
+            last_month = current_month - 1
+            last_month_year = current_year
+
+
+        this_month_total = sum(
+            bill['total'] for bill in self.billings
+            if datetime.strptime(bill['created_at'], "%Y-%m-%d").year == current_year
+            and datetime.strptime(bill['created_at'], "%Y-%m-%d").month == current_month
+        )
+
+        last_month_total = sum(
+            bill['total'] for bill in self.billings
+            if datetime.strptime(bill['created_at'], "%Y-%m-%d").year == last_month_year
+            and datetime.strptime(bill['created_at'], "%Y-%m-%d").month == last_month
+        )
+
+
+        if last_month_total == 0:
+            percentage_diff = None  
+        else:
+            percentage_diff = ((this_month_total - last_month_total) / last_month_total) * 100
+
+        self.ids.last_month_revenue.text = self.human_readable(last_month_total)
+        self.ids.this_month_revenue.text = self.human_readable(this_month_total)
+    
+    def plot_monthly_revenue_waterfall(self):
+        today = datetime.today().date()
+        first_day = today.replace(day=1)
+        last_day = today
+
+        month_days = []
+        current_day = first_day
+        while current_day <= last_day:
+            month_days.append(current_day)
+            current_day += timedelta(days=1)
+
+        daily_revenue = [
+            sum(
+                bill['total']
+                for bill in self.billings
+                if datetime.strptime(bill['created_at'], "%Y-%m-%d").date() == day
+            )
+            for day in month_days
+        ]
+
+        cumulative = [0]
+        for rev in daily_revenue:
+            cumulative.append(cumulative[-1] + rev)
+        starts = cumulative[:-1]
+
+        fig, ax = plt.subplots(figsize=(12, 5), dpi=100)
+
+        for i, day in enumerate(month_days):
+            bar_color = "#4A90E2" if daily_revenue[i] >= 0 else "#E74C3C"
+            bar = ax.bar(
+                day.day,
+                daily_revenue[i],
+                bottom=starts[i],
+                color=bar_color,
+                edgecolor="#2B5DAB",
+                linewidth=1,
+                alpha=0.85
+            )
+
+            
+            height = daily_revenue[i]
+            if height != 0:
+                ax.text(
+                    day.day,
+                    starts[i] + height/2,  
+                    f"{height:.0f}",   
+                    ha='center',
+                    va='center',
+                    fontsize=10,
+                    fontweight='bold',
+                    color='white'
+                )
+
+        ax.set_title("Daily Revenue (This Month)", fontsize=16, fontweight='bold', color="#34495E")
+        ax.set_xlabel("Day of Month", fontsize=12, color="#34495E")
+        ax.set_ylabel("Revenue", fontsize=12, color="#34495E")
+        ax.tick_params(colors="#34495E")
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color("#34495E")
+        ax.spines['bottom'].set_color("#34495E")
+        ax.yaxis.grid(True, linestyle='--', alpha=0.4)
+
+        ax.set_xticks([day.day for day in month_days])
+        ax.set_xticklabels([str(day.day) for day in month_days], rotation=45)
+
+        fig.tight_layout()
+
+        self.ids.monthly_revenue_waterfall.clear_widgets()
+        self.ids.monthly_revenue_waterfall.add_widget(FigureCanvasKivyAgg(fig))
 
     def human_readable(self, num: int) -> str:
         if num < 1_000:
@@ -359,6 +486,7 @@ class AnalysisScreen(MDScreen):
     def initialize_analysis(self):
         self.start_patient_analysis()
         self.start_drug_analysis()
+        self.start_billings_analysis()
 
     def on_enter(self):
         self.initialize_analysis()

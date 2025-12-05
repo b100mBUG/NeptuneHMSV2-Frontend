@@ -463,6 +463,82 @@
                                 orientation: "vertical"
                             MDBoxLayout:
                                 id: drug_donut_chart
+                            
+                        MDLabel:
+                            text: "Revenue"
+                            adaptive_height: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(28)
+                            bold: True
+                        MDBoxLayout:
+                            size_hint_y: None
+                            height: dp(300)
+                            spacing: dp(10)
+                            padding: dp(10)
+                            MDCard:
+                                size_hint_y: None
+                                height: dp(250)
+                                size_hint_x: .5
+                                radius: dp(20)
+                                orientation: "vertical"
+                                padding: dp(20)
+                                spacing: dp(10)
+                                theme_bg_color: "Custom"
+                                md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                MDLabel:
+                                    text: "Last Month"
+                                    theme_font_size: "Custom"
+                                    font_size: sp(40)
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: "grey"
+                                    halign: "center"
+
+                                MDLabel:
+                                    id: last_month_revenue
+                                    text: "0"     
+                                    theme_font_size: "Custom"
+                                    font_size: sp(60)
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: "grey"
+                                    halign: "center"
+                            MDCard:
+                                size_hint_y: None
+                                height: dp(250)
+                                size_hint_x: .5
+                                radius: dp(20)
+                                orientation: "vertical"
+                                padding: dp(20)
+                                spacing: dp(10)
+                                theme_bg_color: "Custom"
+                                md_bg_color: 0.88, 0.93, 0.97, 1   
+
+                                MDLabel:
+                                    text: "This Month"
+                                    theme_font_size: "Custom"
+                                    font_size: sp(40)
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: "purple"
+                                    halign: "center"
+
+                                MDLabel:
+                                    id: this_month_revenue
+                                    text: "0"     
+                                    theme_font_size: "Custom"
+                                    font_size: sp(60)
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: "purple"
+                                    halign: "center"
+                        MDBoxLayout:
+                            size_hint_y: None
+                            height: dp(500)
+                            id: monthly_revenue_waterfall
 
             
             MDDivider:

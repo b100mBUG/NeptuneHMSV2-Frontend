@@ -1,6 +1,7 @@
 from kivy.lang import Builder
 from kivy.clock import mainthread
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
+from kivy.metrics import dp, sp
 
 
 
@@ -389,8 +390,8 @@ class AnalysisScreen(MDScreen):
         else:
             percentage_diff = ((this_month_total - last_month_total) / last_month_total) * 100
 
-        self.ids.last_month_revenue.text = self.human_readable(last_month_total)
-        self.ids.this_month_revenue.text = self.human_readable(this_month_total)
+        self.ids.last_month_revenue.text = f"Ksh. {self.human_readable(last_month_total)}"
+        self.ids.this_month_revenue.text = f"ksh. {self.human_readable(this_month_total)}"
     
     def plot_monthly_revenue_waterfall(self):
         today = datetime.today().date()
@@ -473,6 +474,127 @@ class AnalysisScreen(MDScreen):
         else:
             return f"{num/1_000_000_000:.0f}B" if num % 1_000_000_000 == 0 else f"{num/1_000_000_000:.1f}B"
 
+    # Handle mapping, showing and viewing of patients...
+    def patients_mapper(self, pat: dict):
+        return {
+            'patient_name': pat.get("patient_name", "unknown") or "Unknown",
+            'patient_email': pat.get("patient_email", "example@gmail.com") or "example@gmail.com",
+            'patient_phone': pat.get("patient_phone", "0712345678") or "071234567",
+            'show_profile': lambda x = "Cannot view details in this screen": self.show_snack(x)
+        }
+
+    def display_patients(self, filter):
+        self.ids.rec_box.clear_widgets()
+        if not self.patients:
+            self.show_snack("No patients to display")
+            return
+        if filter == "total":
+            patients = self.patients
+
+        elif filter == "new":
+            today = datetime.today().date()
+            thirty_days_ago = today - timedelta(days=30)
+
+            patients = [
+                pat for pat in self.patients
+                if thirty_days_ago <= datetime.strptime(pat['date_added'], "%Y-%m-%d").date() <= today
+            ]
+
+        elif filter == "adults":
+            today = datetime.today().date()
+            adult_pats = []
+
+            for pat in self.patients:
+                dob = datetime.strptime(pat["patient_dob"], "%Y-%m-%d").date()
+                age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                
+                if age >= 18:
+                    adult_pats.append(pat)
+            
+            patients = adult_pats
+        
+        elif filter == "children":
+            today = datetime.today().date()
+            child_pats = []
+
+            for pat in self.patients:
+                dob = datetime.strptime(pat["patient_dob"], "%Y-%m-%d").date()
+                age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                
+                if age < 18:
+                    child_pats.append(pat)
+            
+            patients = child_pats
+        
+        elif filter == "male":
+            patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "male"]
+        
+        elif filter == "female":
+            patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "female"]
+
+        self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
+        
+    def drugs_mapper(self, drug: dict):
+        return {
+            'drug_name': drug.get("drug_name", "unknown") or "Unknown",
+            'drug_category': drug.get("drug_category", "unknown") or "unknown",
+            'drug_quantity': f"{drug.get("drug_quantity", 0)} available" or "0",
+            'show_profile': lambda x = "Cannot view details in this screen": self.show_snack(x)
+        }
+
+    def display_drugs(self, filter):
+        self.ids.rec_box.clear_widgets()
+        if filter == "total":
+            drugs = self.drugs
+        elif filter == "new":
+            today = datetime.today().date()
+            thirty_days_ago = today - timedelta(days=30)
+
+            drugs = [
+                drug for drug in self.drugs
+                if thirty_days_ago <= datetime.strptime(drug['date_added'], "%Y-%m-%d").date() <= today
+            ]
+        elif filter == "expired":
+            today = datetime.today().date()
+            drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
+        
+        elif filter == "safe":
+            today = datetime.today().date()
+            drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() > today]
+
+        elif filter == "available":
+            drugs = [drug for drug in self.drugs if drug["drug_quantity"] > 0]
+        
+        elif filter == "depleted":
+            drugs = [drug for drug in self.drugs if drug["drug_quantity"] <= 0]
+        
+        elif filter == "sellable":
+            today = datetime.today().date()
+            expired_drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
+
+            drugs  = [
+                drug 
+                for drug in self.drugs
+                if drug['drug_quantity'] > 0 and 
+                drug not in expired_drugs
+            ]
+
+        self.display_items("DrugsRow", drugs, "worker", self.drugs_mapper)
+
+    # Making a universal preview display section...
+    def display_items(self, prev_class, items, flag, mapper):
+        prev = self.ids.rec_view
+        self.ids.rec_box.default_size = (None, dp(80))
+        prev.viewclass = prev_class
+
+        data = [mapper(i) for i in items]
+        prev.data = data
+    
+    # Making a universal custom item preview 
+    def preview_display(self, container, prev_header):
+        self.ids.disp_view.clear_widgets()
+        self.ids.disp_view.add_widget(prev_header)
+        self.ids.disp_view.add_widget(container)
 
     @mainthread
     def show_snack(self, text):

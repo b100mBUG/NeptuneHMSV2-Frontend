@@ -63,7 +63,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1
+                                    on_release: root.display_patients("total")  
 
                                     MDLabel:
                                         text: "Total"
@@ -94,6 +95,7 @@
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
                                     md_bg_color: 0.88, 0.93, 0.97, 1   
+                                    on_release: root.display_patients("new")
 
                                     MDLabel:
                                         text: "New"
@@ -121,7 +123,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1 
+                                    on_release: root.display_patients("adults") 
 
                                     MDLabel:
                                         text: "Adults"
@@ -150,6 +153,7 @@
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
                                     md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    on_release: root.display_patients("children")
 
                                     MDLabel:
                                         text: "Children"
@@ -177,7 +181,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1
+                                    on_release: root.display_patients("male")  
 
                                     MDLabel:
                                         text: "Male"
@@ -205,7 +210,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    on_release: root.display_patients("female") 
 
                                     MDLabel:
                                         text: "Female"
@@ -265,6 +271,7 @@
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
                                     md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    on_release: root.display_drugs("total")
 
                                     MDLabel:
                                         text: "Total"
@@ -294,7 +301,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    on_release: root.display_drugs("new") 
 
                                     MDLabel:
                                         text: "New"
@@ -322,7 +330,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1 
+                                    on_release: root.display_drugs("expired") 
 
                                     MDLabel:
                                         text: "Expired"
@@ -350,7 +359,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1 
+                                    on_release: root.display_drugs("safe") 
 
                                     MDLabel:
                                         text: "Safe"
@@ -378,7 +388,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1  
+                                    md_bg_color: 0.88, 0.93, 0.97, 1 
+                                    on_release: root.display_drugs("available") 
 
                                     MDLabel:
                                         text: "Available"
@@ -406,7 +417,8 @@
                                     padding: dp(20)
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
-                                    md_bg_color: 0.88, 0.93, 0.97, 1   
+                                    md_bg_color: 0.88, 0.93, 0.97, 1 
+                                    on_release: root.display_drugs("depleted")  
 
                                     MDLabel:
                                         text: "Depleted"
@@ -435,6 +447,7 @@
                                     spacing: dp(10)
                                     theme_bg_color: "Custom"
                                     md_bg_color: 0.88, 0.93, 0.97, 1   
+                                    on_release: root.display_drugs("sellable")
 
                                     MDLabel:
                                         text: "Sellable"
@@ -547,6 +560,61 @@
             MDBoxLayout:
                 size_hint_x: .3
                 orientation: "vertical"
+                MDLabel:
+                    text: "Preview"
+                    theme_text_color: "Custom"
+                    text_color: "blue"
+                    bold: True
+                    theme_font_size: "Custom"
+                    adaptive_height: True
+                    font_size: sp(32)
+                    halign: "center"
+                MDDivider:
+                RecycleView:
+                    id: rec_view
+                    scroll_type: ["bars", "content"]
+                    bar_width: 10
+                    size_hint: 1, 1
+                    RecycleBoxLayout:
+                        id: rec_box
+                        default_size: None, dp(50)
+                        default_size_hint: 1, None
+                        orientation: "vertical"
+                        padding: dp(10)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                MDBoxLayout:
+                    size_hint_y: None
+                    height: dp(150)
+                    padding: dp(10)
+                    spacing: dp(20)
+                    Widget:
+                    MDExtendedFabButton:
+                        pos_hint: {"center_y":.5}
+                        fab_state: "expand"
+                        MDExtendedFabButtonIcon:
+                            icon: "file-pdf-box"
+                            theme_icon_color: "Custom"
+                            icon_color: "green"
+                        MDExtendedFabButtonText:
+                            text: "Download PDF"
+                            theme_text_color: "Custom"
+                            text_color: "green"
+                    MDExtendedFabButton:
+                        pos_hint: {"center_y":.5}
+                        fab_state: "expand"
+                        MDExtendedFabButtonIcon:
+                            icon: "file-delimited"
+                            theme_icon_color: "Custom"
+                            icon_color: "green"
+                        MDExtendedFabButtonText:
+                            text: "Download CSV"
+                            theme_text_color: "Custom"
+                            text_color: "green"
+                    Widget:
+
+                        
 
 
 

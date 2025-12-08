@@ -21,7 +21,10 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from threading import Thread
 import requests
 from datetime import datetime, timedelta
+import asyncio
+
 from config import SERVER_URL, STORE
+from database.actions import service
 
 class ServicesRow(MDListItem):
     service_name = StringProperty("")
@@ -97,9 +100,10 @@ def display_services_info(
     return scroll
 
 def fetch_services(intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-    Thread(target=fetch_and_return_services, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+    #Thread(target=fetch_and_return_online_services, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+    Thread(target=fetch_and_return_offline_services, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
-def fetch_and_return_services(intent, sort_term, sort_dir, search_term, callback):
+def fetch_and_return_online_services(intent, sort_term, sort_dir, search_term, callback):
     url = ""
     if intent == "search":
         url = f"{SERVER_URL}services/services-search/?hospital_id={store.get('hospital')['hsp_id']}&search_term={search_term}"
@@ -112,6 +116,28 @@ def fetch_and_return_services(intent, sort_term, sort_dir, search_term, callback
             data = response.json()
         else:
             data = None
+    except Exception:
+        data = None
+
+    if callback:
+        run_on_main_thread(callback, data)
+
+def fetch_and_return_offline_services(intent, sort_term, sort_dir, search_term, callback):
+    try:
+        if intent == "all":
+            db_result = asyncio.run(service.fetch_services(store.get('hospital')['hsp_id'], sort_term, sort_dir))
+        elif intent == "search":
+            db_result = asyncio.run(service.search_services(store.get('hospital')['hsp_id'], search_term))
+        data = [
+            {
+                "service_id": service.service_id,
+                "hospital_id": service.hospital_id,
+                "service_name": service.service_name,
+                "service_desc": service.service_desc,
+                "service_price": service.service_price,
+                "date_added": service.date_added
+            } for service in db_result
+        ]
     except Exception:
         data = None
 
@@ -192,12 +218,18 @@ def submit_service_data(data):
     Thread(target=add_service, args=(data,), daemon=True).start()
 
 def add_service(data):
-    url = f"{SERVER_URL}services/services-add/?hospital_id={store.get('hospital')['hsp_id']}"
-    response = requests.post(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to add service")
+    #url = f"{SERVER_URL}services/services-add/?hospital_id={store.get('hospital')['hsp_id']}"
+    #response = requests.post(url, json=data)
+    #if response.status_code != 200:
+        #show_snack("Failed to add service")
+        #return
+    #show_snack("Service added successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(service.add_services(store.get('hospital')['hsp_id'], data))
+        show_snack("Service added successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again.")
         return
-    show_snack("Service added successfully. You can refresh the page to view them")
 
 def make_text_field(field_name, field_icon, field_text=None):
     text_field = MDTextField(
@@ -298,25 +330,37 @@ def submit_service_edit_data(data, service_id):
     Thread(target=edit_service, args=(data, service_id), daemon=True).start()
 
 def edit_service(data, service_id):
-    url = f"{SERVER_URL}services/services-edit/?hospital_id={store.get('hospital')['hsp_id']}&service_id={service_id}"
-    response = requests.put(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to edit service")
+    #url = f"{SERVER_URL}services/services-edit/?hospital_id={store.get('hospital')['hsp_id']}&service_id={service_id}"
+    #response = requests.put(url, json=data)
+    #if response.status_code != 200:
+        #show_snack("Failed to edit service")
+        #return
+    #show_snack("Service edited successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(service.edit_service(store.get('hospital')['hsp_id'], service_id, data))
+        show_snack("Service edited successfully.")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
         return
-    show_snack("Service edited successfully. You can refresh the page to view them")
 
 def start_service_deletion(service_id):
     show_snack("Please wait as service is deleted")
     Thread(target=delete_service, args=(service_id,), daemon=True).start()
 
 def delete_service(service_id):
-    url = f"{SERVER_URL}services/services-delete/?hospital_id={store.get('hospital')['hsp_id']}&service_id={service_id}"
-    response = requests.delete(url)
-    if response.status_code != 200:
-        show_snack("Failed to delete service")
+    #url = f"{SERVER_URL}services/services-delete/?hospital_id={store.get('hospital')['hsp_id']}&service_id={service_id}"
+    #response = requests.delete(url)
+    #if response.status_code != 200:
+        #show_snack("Failed to delete service")
+        #return
+   # show_snack("Service deleted successfully. You can refresh the page to view them")
+    try: 
+        asyncio.run(service.delete_service(store.get('hospital')['hsp_id'], service_id))
+        show_snack("Service deleted successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
         return
-    show_snack("Service deleted successfully. You can refresh the page to view them")
-
+        
 @mainthread
 def show_snack(text):
     MDSnackbar(

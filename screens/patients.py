@@ -21,7 +21,10 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from threading import Thread
 import requests
 from datetime import datetime, timedelta
+import asyncio
+
 from config import SERVER_URL, STORE
+from database.actions import patients
 
 class PatientsRow(MDListItem):
     patient_name = StringProperty("")
@@ -166,9 +169,10 @@ def display_patients_info(
     return scroll
 
 def fetch_patients(intent="all", sort_term="all", sort_dir="desc", search_term="ss", search_by="ss", callback=None):
-    Thread(target=fetch_and_return_patients, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
+    #Thread(target=fetch_and_return_online_patients, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
+    Thread(target=fetch_and_return_offline_patients, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
 
-def fetch_and_return_patients(intent, sort_term, sort_dir, search_term, search_by, callback):
+def fetch_and_return_online_patients(intent, sort_term, sort_dir, search_term, search_by, callback):
     url = ""
     if intent == "search":
         url = f"{SERVER_URL}patients/patients-search/?hospital_id={store.get('hospital')['hsp_id']}&search_by={search_by}&search_term={search_term}"
@@ -181,6 +185,39 @@ def fetch_and_return_patients(intent, sort_term, sort_dir, search_term, search_b
             data = response.json()
         else:
             data = None
+    except Exception:
+        data = None
+
+    if callback:
+        run_on_main_thread(callback, data)
+
+def fetch_and_return_offline_patients(intent, sort_term, sort_dir, search_term, search_by, callback):
+    try:
+        if intent == "all":
+            db_result = asyncio.run(patients.fetch_patients(store.get('hospital')['hsp_id'], sort_term, sort_dir))
+        elif intent == "search":
+            db_result = asyncio.run(patients.search_patients(store.get('hospital')['hsp_id'], search_by, search_term))
+        
+        data = [
+            {
+                "patient_id": pat.patient_id,
+                "hospital_id": pat.hospital_id,
+                "patient_name": pat.patient_name,
+                "patient_gender": pat.patient_gender,
+                "patient_dob": f"{pat.patient_dob}",
+                "patient_email": pat.patient_email,
+                "patient_phone": pat.patient_phone,
+                "patient_id_number": pat.patient_id_number,
+                "patient_address": pat.patient_address,
+                "patient_weight": pat.patient_weight,
+                "patient_avg_pulse": pat.patient_avg_pulse,
+                "patient_bp": pat.patient_bp,
+                "patient_chronic_condition": pat.patient_chronic_condition,
+                "patient_allergy": pat.patient_allergy,
+                "patient_blood_type": pat.patient_blood_type,
+                "date_added": f"{pat.date_added}".split(' ')[0]
+            } for pat in db_result
+        ]
     except Exception:
         data = None
 
@@ -276,12 +313,18 @@ def submit_patient_data(data):
     Thread(target=add_patient, args=(data,), daemon=True).start()
 
 def add_patient(data):
-    url = f"{SERVER_URL}patients/patients-add/?hospital_id={store.get('hospital')['hsp_id']}"
-    response = requests.post(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to add patient")
+    #url = f"{SERVER_URL}patients/patients-add/?hospital_id={store.get('hospital')['hsp_id']}"
+    #response = requests.post(url, json=data)
+    #if response.status_code != 200:
+       # show_snack("Failed to add patient")
+       # return
+    #show_snack("Patient added successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(patients.add_patients(store.get('hospital')['hsp_id'], data))
+        show_snack("Patient added successfully.")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again.")
         return
-    show_snack("Patient added successfully. You can refresh the page to view them")
 
 def make_text_field(field_name, field_icon, field_text=None):
     text_field = MDTextField(
@@ -444,25 +487,39 @@ def submit_patient_edit_data(data, pat_id):
 
 
 def edit_patient(data, pat_id):
-    url = f"{SERVER_URL}patients/patients-edit/?hospital_id={store.get('hospital')['hsp_id']}&patient_id={pat_id}"
-    response = requests.put(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to edit patient")
+    #url = f"{SERVER_URL}patients/patients-edit/?hospital_id={store.get('hospital')['hsp_id']}&patient_id={pat_id}"
+    #response = requests.put(url, json=data)
+    #if response.status_code != 200:
+        #show_snack("Failed to edit patient")
+        #return
+    #show_snack("Patient edited successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(patients.edit_patients(store.get('hospital')['hsp_id'], pat_id, data))
+        show_snack("Patient edited successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred.")
         return
-    show_snack("Patient edited successfully. You can refresh the page to view them")
 
 def start_patient_deletion(pat_id):
     show_snack("Please wait as patient is deleted")
     Thread(target=delete_patient, args=(pat_id,), daemon=True).start()
 
 def delete_patient(pat_id):
-    url = f"{SERVER_URL}patients/patients-delete/?hospital_id={store.get('hospital')['hsp_id']}&patient_id={pat_id}"
-    response = requests.delete(url)
-    if response.status_code != 200:
-        show_snack("Failed to delete patient")
-        return
-    show_snack("Patient deleted successfully. You can refresh the page to view them")
+    #url = f"{SERVER_URL}patients/patients-delete/?hospital_id={store.get('hospital')['hsp_id']}&patient_id={pat_id}"
+    #response = requests.delete(url)
+    #if response.status_code != 200:
+        #show_snack("Failed to delete patient")
+        #return
+    #show_snack("Patient deleted successfully. You can refresh the page to view them")
     
+    try:
+        asyncio.run(patients.delete_patient(store.get('hospital')['hsp_id'], pat_id))
+        show_snack("Patient deleted successfully")
+        return
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
+        return
+
 def show_date_picker(target_field):
     day = month = year = "00"
     

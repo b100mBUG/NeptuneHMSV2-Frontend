@@ -1424,6 +1424,7 @@ class AdminScreen(MDScreen):
 
         def on_results_fetched(results):
             if not results:
+                print(result)
                 print("results not found")
                 return
             self.display_items("ResultsRow", results, "drug", self.results_mapper)

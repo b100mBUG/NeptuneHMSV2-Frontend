@@ -23,7 +23,13 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from threading import Thread
 import requests
 from datetime import datetime, timedelta
+import asyncio
+
 from config import SERVER_URL, STORE
+from database.actions.lab_result import (
+    add_lab_result, fetch_lab_results, edit_lab_result,
+    delete_lab_result, search_lab_results
+)
 from screens.patients import fetch_patients
 
 class ResultsRow(MDListItem):
@@ -105,9 +111,11 @@ class ResultsInfo:
         return scroll
 
     def fetch_results(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-        Thread(target=self.fetch_and_return_results, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        print("Fetching results...")
+        #Thread(target=self.fetch_and_return_online_results, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        Thread(target=self.fetch_and_return_offline_results, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
-    def fetch_and_return_results(self, intent, sort_term, sort_dir, search_term, callback):
+    def fetch_and_return_online_results(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
         if intent == "search":
             url = f"{SERVER_URL}lab_results/lab_results-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
@@ -124,6 +132,36 @@ class ResultsInfo:
             data = None
 
         if callback:
+            self.run_on_main_thread(callback, data)
+    
+    def fetch_and_return_offline_results(self, intent, sort_term, sort_dir, search_term, callback):
+        print("Running on background thread")
+        try:
+            if intent == "all":
+                db_result = asyncio.run(fetch_lab_results(self.store.get('hospital')['hsp_id'], sort_term, sort_dir))
+            elif intent == "search":
+                db_result = asyncio.run(search_lab_results(self.store.get('hospital')['hsp_id'], search_term))
+            
+            data = [
+                {
+                    "hospital_id": res.hospital_id,
+                    "result_id": res.result_id,
+                    "observations": res.observations,
+                    "conclusion": res.conclusion,
+                    "patient": {
+                        "patient_id": res.patient.patient_id,
+                        "hospital_id": res.patient.hospital_id,
+                        "patient_name": res.patient.patient_name,
+                    },
+                    "date_added": f"{res.date_added.date()}"
+                } for res in db_result
+            ]
+        except Exception as e:
+            print(e)
+            data = None
+
+        if callback:
+            print("Data fetched: ", data)
             self.run_on_main_thread(callback, data)
 
     @mainthread
@@ -211,12 +249,18 @@ class ResultsInfo:
         Thread(target=self.add_result, args=(data,), daemon=True).start()
 
     def add_result(self, data):
-        url = f"{SERVER_URL}lab_results/lab_results-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
-        response = requests.post(url, json=data)
-        if response.status_code != 200:
-            self.show_snack("Failed to add result")
+        #url = f"{SERVER_URL}lab_results/lab_results-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
+        #response = requests.post(url, json=data)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to add result")
+            #return
+        #self.show_snack("Result added successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(add_lab_result(self.store.get('hospital')['hsp_id'], data))
+            self.show_snack("Lab result added successfully.")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again.")
             return
-        self.show_snack("Result added successfully. You can refresh the page to view them")
 
     def confirm_deletion_form(self, res_id):
         confirm_delete_dialog = MDDialog(
@@ -260,12 +304,18 @@ class ResultsInfo:
         Thread(target=self.delete_result, args=(res_id,), daemon=True).start()
 
     def delete_result(self, res_id):
-        url = f"{SERVER_URL}lab_results/lab_results-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_result_id={res_id}"
-        response = requests.delete(url)
-        if response.status_code != 200:
-            self.show_snack("Failed to delete result")
+        #url = f"{SERVER_URL}lab_results/lab_results-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_result_id={res_id}"
+        #response = requests.delete(url)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to delete result")
+            #return
+        #self.show_snack("Result deleted successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(delete_lab_result(self.store.get('hospital')['hsp_id'], res_id))
+            self.show_snack("Lab result deleted successfully")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again")
             return
-        self.show_snack("Result deleted successfully. You can refresh the page to view them")
         
     @mainthread
     def make_patients_container(self):
@@ -456,10 +506,16 @@ class ResultsInfo:
         Thread(target=self.edit_res, args=(data, res_id), daemon=True).start()
 
     def edit_res(self, data, res_id):
-        url = f"{SERVER_URL}lab_results/lab_results-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_result_id={res_id}"
-        response = requests.put(url, json=data)
-        print(data)
-        if response.status_code != 200:
-            self.show_snack("Failed to edit result")
+        #url = f"{SERVER_URL}lab_results/lab_results-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_result_id={res_id}"
+        #response = requests.put(url, json=data)
+        #print(data)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to edit result")
+            #return
+        #self.show_snack("Result edited successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(edit_lab_result(self.store.get('hospital')['hsp_id'], res_id, data))
+            self.show_snack("Result edited successfully.")
+        except Exception as e:
+            self.show_snack("An unexpected error ocurred. Please try again")
             return
-        self.show_snack("Result edited successfully. You can refresh the page to view them")

@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 from kivy.metrics import dp, sp
 
@@ -11,10 +11,13 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from screens.patients import fetch_patients
 from screens.drugs import fetch_drugs
 from screens.billings import fetch_billings
-from config import resource_path
+from config import resource_path, SERVER_URL, STORE
+from utils import PDFDownloader
 
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import webbrowser
+from threading import Thread
 
 
 Builder.load_file(resource_path("screens/analysis.kv"))
@@ -33,9 +36,9 @@ class AnalysisScreen(MDScreen):
         self.safe_drugs = []
         self.available_drugs = []
 
-        self.fetch_patients_data()
-        self.fetch_drugs_data()
-        self.fetch_billings_data()
+        self.store = STORE
+
+        self.pdf_downloader = PDFDownloader()
     
     def fetch_patients_data(self):
         fetch_patients("all", "all", "desc", callback=self.on_patients_fetched)
@@ -44,7 +47,6 @@ class AnalysisScreen(MDScreen):
         fetch_drugs("all", "all", "desc", callback=self.on_drugs_fetched)
     
     def fetch_billings_data(self):
-        print("Fetched!!")
         fetch_billings("all", None, callback=self.on_billings_fetched)
     
     def on_billings_fetched(self, billings):
@@ -52,7 +54,6 @@ class AnalysisScreen(MDScreen):
             self.show_snack("Billings not found")
             return
         self.billings = billings
-        print("Billings: ", billings)
         self.start_billings_analysis()
 
     def on_patients_fetched(self, patients):
@@ -77,8 +78,8 @@ class AnalysisScreen(MDScreen):
         self.analyse_new_patients()
         self.analyse_age_patients()
         self.analyse_gender_patients()
-        self.plot_weekly_patients()
-        self.plot_monthly_patients()
+        Thread(target=self.plot_weekly_patients, daemon=True).start()
+        Thread(target=self.plot_monthly_patients, daemon=True).start()
     
     def analyse_all_patients(self):
         total = len(self.patients)
@@ -164,9 +165,14 @@ class AnalysisScreen(MDScreen):
         ax.spines['bottom'].set_color("#4A90E2")
         ax.yaxis.grid(True, linestyle='--', alpha=0.4)
 
+        fig.tight_layout()
+
+        Clock.schedule_once(lambda dt: self._update_weekly_patients(fig))
+
+    def _update_weekly_patients(self, fig):
         self.ids.weekly_patients.clear_widgets()
         self.ids.weekly_patients.add_widget(FigureCanvasKivyAgg(fig))
-    
+
     def plot_monthly_patients(self):
         today = datetime.today().date()
         first_day = today.replace(day=1)
@@ -212,11 +218,15 @@ class AnalysisScreen(MDScreen):
         ax.yaxis.grid(True, linestyle='--', alpha=0.4)
 
         self.ids.monthly_patients.clear_widgets()
+
+        Clock.schedule_once(lambda dt: self._update_monthly_patients(fig))
+
+    def _update_monthly_patients(self, fig):
+        self.ids.monthly_patients.clear_widgets()
         self.ids.monthly_patients.add_widget(FigureCanvasKivyAgg(fig))
     
     def start_drug_analysis(self):
         if not self.drugs:
-            self.show_snack("No drugs to analyse")
             return
         self.analyse_all_drugs()
         self.analyse_new_drugs()
@@ -225,7 +235,7 @@ class AnalysisScreen(MDScreen):
         self.analyse_available_drugs()
         self.analyse_depleted_drugs()
         self.analyse_sellable_drugs()
-        self.plot_drug_charts()
+        Thread(target=self.plot_drug_charts, daemon=True).start()
     
     def analyse_all_drugs(self):
         all_drugs = len(self.drugs)
@@ -306,18 +316,13 @@ class AnalysisScreen(MDScreen):
             shadow=False,  
             wedgeprops={'edgecolor':'white'}
         )
-
         for autotext in autotexts:
             autotext.set_color('white')
             autotext.set_fontsize(11)
             autotext.set_fontweight('bold')
-
         ax1.set_title("Drug Status Distribution", fontsize=16, fontweight='bold', color="#34495E")
         ax1.axis('equal')
         fig1.tight_layout()
-
-        self.ids.drug_pie_chart.clear_widgets()
-        self.ids.drug_pie_chart.add_widget(FigureCanvasKivyAgg(fig1))
 
         donut_labels = ["Available", "Depleted", "Sellable"]
         donut_sizes = [len(self.available_drugs), len(self.depleted_drugs), len(self.sellable_drugs)]
@@ -337,25 +342,30 @@ class AnalysisScreen(MDScreen):
             shadow=False,
             wedgeprops={'edgecolor':'white', 'width':0.4}  
         )
-
         for autotext in autotexts2:
             autotext.set_color('magenta')
             autotext.set_fontsize(11)
             autotext.set_fontweight('bold')
-
         ax2.set_title("Drug Availability", fontsize=16, fontweight='bold', color="#34495E")
         ax2.axis('equal')
         fig2.tight_layout()
 
+        Clock.schedule_once(lambda dt: self._update_drug_charts(fig1, fig2))
+
+    def _update_drug_charts(self, fig1, fig2):
+        self.ids.drug_pie_chart.clear_widgets()
+        self.ids.drug_pie_chart.add_widget(FigureCanvasKivyAgg(fig1))
+
         self.ids.drug_donut_chart.clear_widgets()
         self.ids.drug_donut_chart.add_widget(FigureCanvasKivyAgg(fig2))
+
 
     def start_billings_analysis(self):
         if not self.billings:
             self.show_snack("No billings to analyse")
             return
         self.compare_monthly_sales()
-        self.plot_monthly_revenue_waterfall()
+        Thread(target=self.plot_monthly_revenue_waterfall, daemon=True).start()
     
 
     def compare_monthly_sales(self):
@@ -432,13 +442,12 @@ class AnalysisScreen(MDScreen):
                 alpha=0.85
             )
 
-            
             height = daily_revenue[i]
             if height != 0:
                 ax.text(
                     day.day,
-                    starts[i] + height/2,  
-                    f"{height:.0f}",   
+                    starts[i] + height/2,
+                    f"{height:.0f}",
                     ha='center',
                     va='center',
                     fontsize=10,
@@ -455,14 +464,16 @@ class AnalysisScreen(MDScreen):
         ax.spines['left'].set_color("#34495E")
         ax.spines['bottom'].set_color("#34495E")
         ax.yaxis.grid(True, linestyle='--', alpha=0.4)
-
         ax.set_xticks([day.day for day in month_days])
         ax.set_xticklabels([str(day.day) for day in month_days], rotation=45)
-
         fig.tight_layout()
 
+        Clock.schedule_once(lambda dt: self._update_monthly_waterfall(fig))
+
+    def _update_monthly_waterfall(self, fig):
         self.ids.monthly_revenue_waterfall.clear_widgets()
         self.ids.monthly_revenue_waterfall.add_widget(FigureCanvasKivyAgg(fig))
+
 
     def human_readable(self, num: int) -> str:
         if num < 1_000:
@@ -490,6 +501,7 @@ class AnalysisScreen(MDScreen):
             return
         if filter == "total":
             patients = self.patients
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "all")
 
         elif filter == "new":
             today = datetime.today().date()
@@ -499,6 +511,7 @@ class AnalysisScreen(MDScreen):
                 pat for pat in self.patients
                 if thirty_days_ago <= datetime.strptime(pat['date_added'], "%Y-%m-%d").date() <= today
             ]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "new")
 
         elif filter == "adults":
             today = datetime.today().date()
@@ -512,6 +525,8 @@ class AnalysisScreen(MDScreen):
                     adult_pats.append(pat)
             
             patients = adult_pats
+
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "adults")
         
         elif filter == "children":
             today = datetime.today().date()
@@ -525,12 +540,14 @@ class AnalysisScreen(MDScreen):
                     child_pats.append(pat)
             
             patients = child_pats
-        
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "children")
         elif filter == "male":
             patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "male"]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "male")
         
         elif filter == "female":
             patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "female"]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "female")
 
         self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
         
@@ -546,6 +563,7 @@ class AnalysisScreen(MDScreen):
         self.ids.rec_box.clear_widgets()
         if filter == "total":
             drugs = self.drugs
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "all")
         elif filter == "new":
             today = datetime.today().date()
             thirty_days_ago = today - timedelta(days=30)
@@ -554,19 +572,24 @@ class AnalysisScreen(MDScreen):
                 drug for drug in self.drugs
                 if thirty_days_ago <= datetime.strptime(drug['date_added'], "%Y-%m-%d").date() <= today
             ]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "new")
         elif filter == "expired":
             today = datetime.today().date()
             drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "expired")
         
         elif filter == "safe":
             today = datetime.today().date()
             drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() > today]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "safe")
 
         elif filter == "available":
             drugs = [drug for drug in self.drugs if drug["drug_quantity"] > 0]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "available")
         
         elif filter == "depleted":
             drugs = [drug for drug in self.drugs if drug["drug_quantity"] <= 0]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "depleted")
         
         elif filter == "sellable":
             today = datetime.today().date()
@@ -578,6 +601,7 @@ class AnalysisScreen(MDScreen):
                 if drug['drug_quantity'] > 0 and 
                 drug not in expired_drugs
             ]
+            self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "sellable")
 
         self.display_items("DrugsRow", drugs, "worker", self.drugs_mapper)
 
@@ -590,12 +614,6 @@ class AnalysisScreen(MDScreen):
         data = [mapper(i) for i in items]
         prev.data = data
     
-    # Making a universal custom item preview 
-    def preview_display(self, container, prev_header):
-        self.ids.disp_view.clear_widgets()
-        self.ids.disp_view.add_widget(prev_header)
-        self.ids.disp_view.add_widget(container)
-
     @mainthread
     def show_snack(self, text):
         MDSnackbar(
@@ -605,10 +623,21 @@ class AnalysisScreen(MDScreen):
             orientation='horizontal'
         ).open()
 
+    def refresh_content(self):
+        self.show_snack("Starting refreshing...")
+        self.fetch_billings_data()
+        self.fetch_drugs_data()
+        self.fetch_patients_data()
+        self.initialize_analysis()
+        self.show_snack("Done refreshing.")
+
     def initialize_analysis(self):
         self.start_patient_analysis()
         self.start_drug_analysis()
         self.start_billings_analysis()
 
     def on_enter(self):
+        self.fetch_patients_data()
+        self.fetch_drugs_data()
+        self.fetch_billings_data()
         self.initialize_analysis()

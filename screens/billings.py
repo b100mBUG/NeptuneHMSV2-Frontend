@@ -1,15 +1,24 @@
 from threading import Thread
 from kivy.clock import mainthread
+
 import requests
+import asyncio
+
 from config import SERVER_URL
 from config import STORE
+from utils import has_internet
+from database.actions.billing import show_total_billings, show_total_patient_billings, show_total_patient_billings_today
 
 store = STORE
 
-def fetch_billings(filter, patient_id: int = 1, callback=None):
-    Thread(target=start_fetching_bills, args=(filter, patient_id, callback), daemon=True).start()
 
-def start_fetching_bills(filter, pat_id, callback=None):
+
+
+def fetch_billings(filter, patient_id: int = 1, callback=None):
+    #Thread(target=start_online_fetching_bills, args=(filter, patient_id, callback), daemon=True).start()
+    Thread(target=start_offline_fetching_bills, args=(filter, patient_id, callback), daemon=True).start()
+
+def start_online_fetching_bills(filter, pat_id, callback=None):
     if filter == "all":
         url = f"{SERVER_URL}billings/billings/show-all/?hospital_id={store.get('hospital')['hsp_id']}"
     elif filter == "patient":
@@ -28,6 +37,32 @@ def start_fetching_bills(filter, pat_id, callback=None):
         data = None
 
     if callback:
+        run_on_main_thread(callback, data)
+
+def start_offline_fetching_bills(filter, pat_id, callback=None):
+
+    if filter == "all":
+        db_result  = asyncio.run(show_total_billings(store.get('hospital')['hsp_id']))
+    elif filter == "patient":
+        db_result  = asyncio.run(show_total_patient_billings(store.get('hospital')['hsp_id'], pat_id))
+    elif filter == "patient-today":
+        db_result = asyncio.run(show_total_patient_billings_today(store.get('hospital')['hsp_id'], pat_id))
+    
+    data = [
+        {
+        "billing_id": bill.billing_id,
+        "hospital_id": bill.hospital_id,
+        "patient_id": bill.patient_id,
+        "item": bill.item,
+        "source": bill.source,
+        "total": bill.total,
+        "created_at": f"{bill.created_at}".split(" ")[0]
+    } for bill in db_result
+    ]
+
+
+    if callback:
+        print(data)
         run_on_main_thread(callback, data)
 
 @mainthread

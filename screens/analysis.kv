@@ -21,6 +21,11 @@
                 bold: True
             MDTopAppBarTrailingButtonContainer:
                 MDActionTopAppBarButton:
+                    icon: "refresh"
+                    theme_icon_color: "Custom"
+                    icon_color: "green"
+                    on_release: root.refresh_content()
+                MDActionTopAppBarButton:
                     icon: "logout"
                     theme_icon_color: "Custom"
                     icon_color: "red"
@@ -593,6 +598,7 @@
                     MDExtendedFabButton:
                         pos_hint: {"center_y":.5}
                         fab_state: "expand"
+                        id: pdf_downloader
                         MDExtendedFabButtonIcon:
                             icon: "file-pdf-box"
                             theme_icon_color: "Custom"

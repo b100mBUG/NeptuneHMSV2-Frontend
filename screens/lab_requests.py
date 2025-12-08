@@ -22,10 +22,15 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 from threading import Thread
 import requests
+import asyncio
 from datetime import datetime, timedelta
 from config import SERVER_URL, STORE
 from screens.patients import fetch_patients
 from screens.lab_tests import fetch_tests
+from database.actions.lab_request import (
+    fetch_lab_requests, add_lab_request, 
+    delete_lab_request, search_lab_request
+)
 
 class RequestsRow(MDListItem):
     patient_name = StringProperty("")
@@ -127,9 +132,10 @@ class RequestsInfo:
         return scroll
 
     def fetch_requests(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-        Thread(target=self.fetch_and_return_requests, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        Thread(target=self.fetch_and_return_offline_requests, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        #Thread(target=self.fetch_and_return_onlinerequests, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
-    def fetch_and_return_requests(self, intent, sort_term, sort_dir, search_term, callback):
+    def fetch_and_return_online_requests(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
         if intent == "search":
             url = f"{SERVER_URL}lab_requests/lab_requests-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
@@ -142,6 +148,45 @@ class RequestsInfo:
                 data = response.json()
             else:
                 data = None
+        except Exception:
+            data = None
+
+        if callback:
+            self.run_on_main_thread(callback, data)
+    
+    def fetch_and_return_offline_requests(self, intent, sort_term, sort_dir, search_term, callback):
+        url = ""
+        if intent == "search":
+            url = f"{SERVER_URL}lab_requests/lab_requests-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
+        elif intent == "all":
+            url = f"{SERVER_URL}lab_requests/lab_requests-fetch/?hospital_id={self.store.get('hospital')['hsp_id']}&sort_term={sort_term}&sort_dir={sort_dir}"
+
+        try:
+            if intent == "search":
+                db_results = asyncio.run(search_lab_request(self.store.get('hospital')['hsp_id'], search_term))
+            elif intent == "all":
+                db_results = asyncio.run(fetch_lab_requests(self.store.get('hospital')['hsp_id'], sort_term, sort_dir))
+            
+            data = [
+                {
+                    "hospital_id": req.hospital_id,
+                    "request_id": req.request_id,
+                    "test": {
+                        "test_id": req.test.test_id,
+                        "hospital_id": req.test.hospital_id,
+                        "test_name": req.test.test_name,
+                        "test_desc": req.test.test_desc,
+                        "test_price": req.test.test_price,
+                    },
+                    "patient": {
+                    "patient_id": req.patient.patient_id,
+                    "hospital_id": req.patient.hospital_id,
+                    "patient_name": req.patient.patient_name,
+                    },
+                    "date_added": f"{req.date_added}"
+                } for req in db_results
+            ]
+
         except Exception:
             data = None
 
@@ -231,12 +276,18 @@ class RequestsInfo:
         Thread(target=self.add_request, args=(data,), daemon=True).start()
 
     def add_request(self, data):
-        url = f"{SERVER_URL}lab_requests/lab_requests-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
-        response = requests.post(url, json=data)
-        if response.status_code != 200:
-            self.show_snack("Failed to add request")
+        #url = f"{SERVER_URL}lab_requests/lab_requests-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
+        #response = requests.post(url, json=data)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to add request")
+            #return
+        #self.show_snack("Request added successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(add_lab_request(self.store.get('hospital')['hsp_id'], data))
+            self.show_snack("Lab request added successfully.")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again.")
             return
-        self.show_snack("Request added successfully. You can refresh the page to view them")
 
     def confirm_deletion_form(self, req_id):
         confirm_delete_dialog = MDDialog(
@@ -280,12 +331,18 @@ class RequestsInfo:
         Thread(target=self.delete_request, args=(req_id,), daemon=True).start()
 
     def delete_request(self, req_id):
-        url = f"{SERVER_URL}lab_requests/lab_requests-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_request_id={req_id}"
-        response = requests.delete(url)
-        if response.status_code != 200:
-            self.show_snack("Failed to delete request")
+        #url = f"{SERVER_URL}lab_requests/lab_requests-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_request_id={req_id}"
+        #response = requests.delete(url)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to delete request")
+            #return
+        #self.show_snack("Request deleted successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(delete_lab_request(self.store.get('hospital')['hsp_id'], req_id))
+            self.show_snack("Lab request deleted successfully")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again")
             return
-        self.show_snack("Request deleted successfully. You can refresh the page to view them")
         
     @mainthread
     def make_patients_container(self):

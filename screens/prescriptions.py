@@ -22,9 +22,40 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from threading import Thread
 import requests
 from datetime import datetime, timedelta
+import asyncio
+from collections import defaultdict
+
 from config import SERVER_URL, STORE
 from screens.patients import fetch_patients
 from screens.drugs import fetch_drugs
+from database.actions import prescription
+
+
+def agglomerate_prescriptions(prescriptions):
+    grouped = defaultdict(list)
+    for presc in prescriptions:
+        grouped[presc.patient.patient_name].append(presc)
+
+    output = []
+    for patient_name, presc_group in grouped.items():
+        entries = []
+        for presc in presc_group:
+            presc_id = presc.prescription_id
+            for item in presc.items:
+                entries.append({
+                    "drug_name": item.drug.drug_name,
+                    "quantity": item.drug_qty,
+                    "notes": item.notes
+                })
+
+        output.append({
+            "prescription_id": presc_id,
+            "patient_name": patient_name,
+            "entries": entries,
+            "dates": sorted({str(p.date_added).split(" ")[0] for p in presc_group}),
+        })
+
+    return output
 
 class PrescriptionsRow(MDListItem):
     patient_name = StringProperty("")
@@ -139,9 +170,10 @@ class PrescriptionsInfo:
         return scroll
 
     def fetch_prescription(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-        Thread(target=self.fetch_and_return_prescs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        #Thread(target=self.fetch_and_return_online_prescs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        Thread(target=self.fetch_and_return_offline_prescs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
-    def fetch_and_return_prescs(self, intent, sort_term, sort_dir, search_term, callback):
+    def fetch_and_return_online_prescs(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
         if intent == "search":
             url = f"{SERVER_URL}prescription/prescriptions-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
@@ -154,6 +186,20 @@ class PrescriptionsInfo:
                 data = response.json()
             else:
                 data = None
+        except Exception:
+            data = None
+
+        if callback:
+            self.run_on_main_thread(callback, data)
+    
+    def fetch_and_return_offline_prescs(self, intent, sort_term, sort_dir, search_term, callback):
+        try:
+            if intent == "all":
+                db_result = asyncio.run(prescription.fetch_prescriptions(self.store.get('hospital')['hsp_id'], sort_term, sort_dir))
+            elif intent == "search":
+                db_result = asyncio.run(prescription.search_prescriptions(self.store.get('hospital')['hsp_id'], search_term))
+            
+            data = agglomerate_prescriptions(db_result)
         except Exception:
             data = None
 
@@ -261,12 +307,19 @@ class PrescriptionsInfo:
         Thread(target=self.add_presc, args=(data,), daemon=True).start()
 
     def add_presc(self, data):
-        url = f"{SERVER_URL}prescription/prescriptions-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
-        response = requests.post(url, json=data)
-        if response.status_code != 200:
-            self.show_snack("Failed to add prescription")
+        #url = f"{SERVER_URL}prescription/prescriptions-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
+        #response = requests.post(url, json=data)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to add prescription")
+            #return
+        #self.show_snack("Prescription added successfully. You can refresh the page to view them")
+
+        try:
+            asyncio.run(prescription.add_prescription(self.store.get('hospital')['hsp_id'], data))
+            self.show_snack("Prescription added successfully")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again")
             return
-        self.show_snack("Prescription added successfully. You can refresh the page to view them")
 
     def confirm_deletion_form(self, presc_id):
         confirm_delete_dialog = MDDialog(
@@ -309,13 +362,19 @@ class PrescriptionsInfo:
         self.show_snack("Please wait as prescription is deleted")
         Thread(target=self.delete_prescription, args=(presc_id,), daemon=True).start()
 
-    def delete_prescription(self, diag_id):
-        url = f"{SERVER_URL}prescription/prescriptions-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&prescription_id={diag_id}"
-        response = requests.delete(url)
-        if response.status_code != 200:
-            self.show_snack("Failed to delete prescription")
+    def delete_prescription(self, presc_id):
+        #url = f"{SERVER_URL}prescription/prescriptions-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&prescription_id={diag_id}"
+        #response = requests.delete(url)
+        #if response.status_code != 200:
+            #self.show_snack("Failed to delete prescription")
+            #return
+        #self.show_snack("Prescription deleted successfully. You can refresh the page to view them")
+        try:
+            asyncio.run(prescription.delete_prescription(self.store.get('hospital')['hsp_id'], presc_id))
+            self.show_snack("Prescription deleted successfully.")
+        except Exception as e:
+            self.show_snack("An unexpected error occurred. Please try again.")
             return
-        self.show_snack("Prescription deleted successfully. You can refresh the page to view them")
         
     @mainthread
     def make_patients_container(self):

@@ -21,7 +21,10 @@ from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from threading import Thread
 import requests
 from datetime import datetime, timedelta
+import asyncio
+
 from config import SERVER_URL, STORE
+from database.actions import drugs
 
 class DrugsRow(MDListItem):
     drug_name = StringProperty("")
@@ -140,9 +143,10 @@ def display_drugs_info(
     return scroll
 
 def fetch_drugs(intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-    Thread(target=fetch_and_return_drugs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+    #Thread(target=fetch_and_return_online_drugs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+    Thread(target=fetch_and_return_offline_drugs, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
-def fetch_and_return_drugs(intent, sort_term, sort_dir, search_term, callback):
+def fetch_and_return_online_drugs(intent, sort_term, sort_dir, search_term, callback):
     url = ""
     if intent == "search":
         url = f"{SERVER_URL}drugs/drugs-search/?hospital_id={store.get('hospital')['hsp_id']}&search_term={search_term}"
@@ -155,6 +159,31 @@ def fetch_and_return_drugs(intent, sort_term, sort_dir, search_term, callback):
             data = response.json()
         else:
             data = None
+    except Exception:
+        data = None
+
+    if callback:
+        run_on_main_thread(callback, data)
+
+def fetch_and_return_offline_drugs(intent, sort_term, sort_dir, search_term, callback):
+    try:
+        if intent == "all":
+            db_result = asyncio.run(drugs.fetch_drugs(store.get('hospital')['hsp_id'], sort_term, sort_dir))
+        elif intent == "search":
+            db_result = asyncio.run(drugs.search_drugs(store.get('hospital')['hsp_id'], search_term))
+        data = [
+            {
+                "drug_id": drug.drug_id,
+                "hospital_id": drug.hospital_id,
+                "drug_name": drug.drug_name,
+                "drug_category": drug.drug_category,
+                "drug_desc": drug.drug_desc,
+                "drug_quantity": drug.drug_quantity,
+                "drug_price": drug.drug_price,
+                "drug_expiry": f"{drug.drug_expiry.date()}",
+                "date_added": f"{drug.date_added.date()}"
+            } for drug in db_result
+        ]
     except Exception:
         data = None
 
@@ -263,12 +292,18 @@ def submit_drug_data(data):
     Thread(target=add_drug, args=(data,), daemon=True).start()
 
 def add_drug(data):
-    url = f"{SERVER_URL}drugs/drugs-add/?hospital_id={store.get('hospital')['hsp_id']}"
-    response = requests.post(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to add drug")
+    #url = f"{SERVER_URL}drugs/drugs-add/?hospital_id={store.get('hospital')['hsp_id']}"
+    #response = requests.post(url, json=data)
+    #if response.status_code != 200:
+        #show_snack("Failed to add drug")
+        #return
+    #show_snack("Drug added successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(drugs.add_drugs(store.get('hospital')['hsp_id'], data))
+        show_snack("Drug added successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
         return
-    show_snack("Drug added successfully. You can refresh the page to view them")
 
 def make_text_field(field_name, field_icon, field_text=None):
     text_field = MDTextField(
@@ -388,36 +423,56 @@ def submit_drug_edit_data(data, drug_id):
     Thread(target=edit_drug, args=(data, drug_id), daemon=True).start()
 
 def edit_drug(data, drug_id):
-    url = f"{SERVER_URL}drugs/drugs-edit/?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_id}"
-    response = requests.put(url, json=data)
-    if response.status_code != 200:
-        show_snack("Failed to edit drug")
+    #url = f"{SERVER_URL}drugs/drugs-edit/?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_id}"
+    #response = requests.put(url, json=data)
+    #if response.status_code != 200:
+        #show_snack("Failed to edit drug")
+        #return
+    #show_snack("Drug edited successfully. You can refresh the page to view them")
+
+    try:
+        asyncio.run(drugs.edit_drug(store.get('hospital')['hsp_id'], drug_id, data))
+        show_snack("Drug edited successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
         return
-    show_snack("Drug edited successfully. You can refresh the page to view them")
 
 def start_drug_deletion(drug_id):
     show_snack("Please wait as worker is deleted")
     Thread(target=delete_drug, args=(drug_id,), daemon=True).start()
 
 def delete_drug(drug_id):
-    url = f"{SERVER_URL}drugs/drugs-delete/?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_id}"
-    response = requests.delete(url)
-    if response.status_code != 200:
-        show_snack("Failed to delete drug")
+    #url = f"{SERVER_URL}drugs/drugs-delete/?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_id}"
+    #response = requests.delete(url)
+    #if response.status_code != 200:
+        #show_snack("Failed to delete drug")
+        #return
+    #show_snack("Drug deleted successfully. You can refresh the page to view them")
+    try:
+        asyncio.run(drugs.delete_drug(store.get('hospital')['hsp_id'], drug_id))
+        show_snack("Drug deleted successfully")
+    except Exception as e:
+        show_snack("An unexpected error occurred. Please try again")
         return
-    show_snack("Drug deleted successfully. You can refresh the page to view them")
 
 def start_drug_sale(drug_data: dict):
     show_snack("Starting drug selling process...")
     Thread(target=sale_drug, args=(drug_data,), daemon=True).start()
 
 def sale_drug(drug_data: dict):
-    url = f"{SERVER_URL}drugs/drugs/drug-sale?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_data.get('drug_id')}&drug_qty={drug_data.get('qty')}"
-    response = requests.put(url)
-    if response.status_code != 200:
-        show_snack("Failed to sale drug")
+    #url = f"{SERVER_URL}drugs/drugs/drug-sale?hospital_id={store.get('hospital')['hsp_id']}&drug_id={drug_data.get('drug_id')}&drug_qty={drug_data.get('qty')}"
+    #response = requests.put(url)
+    #if response.status_code != 200:
+        #show_snack("Failed to sale drug")
+        #return
+    #show_snack("Drugs sold successfully...")
+    try:
+        asyncio.run(drugs.sale_drug(store.get('hospital')['hsp_id'], drug_data.get("drug_id"), drug_data.get("qty")))
+        show_snack("Drug sold successfully")
+    except Exception as e:
+        show_snack("A unexpected error occurred. Please try again.")
         return
-    show_snack("Drugs sold successfully...")
+
 
 def show_date_picker(target_field):
     day = month = year = "00"

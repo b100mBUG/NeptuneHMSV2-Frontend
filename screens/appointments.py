@@ -30,11 +30,6 @@ from screens.worker import fetch_workers
 from config import STORE
 from utils import has_internet
 import asyncio
-from database.actions.appointment import (
-    fetch_appointments, search_appointments, 
-    add_appointment, edit_appointment, 
-    delete_appointment
-)
 
 class AppointmentsRow(MDListItem):
     patient_name = StringProperty("")
@@ -174,8 +169,7 @@ class AppointmentsInfo:
         return scroll
 
     def fetch_apps(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-        #Thread(target=self.fetch_and_return_online_apps, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
-        Thread(target=self.fetch_and_return_offline_apps, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        Thread(target=self.fetch_and_return_online_apps, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
     def fetch_and_return_online_apps(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
@@ -190,58 +184,6 @@ class AppointmentsInfo:
                 data = response.json()
             else:
                 data = None
-        except Exception:
-            data = None
-
-        if callback:
-            self.run_on_main_thread(callback, data)
-    
-    def fetch_and_return_offline_apps(self, intent, sort_term, sort_dir, search_term, callback):
-        url = ""
-        if intent == "search":
-            url = f"{SERVER_URL}appointments/appointments-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
-        elif intent == "all":
-            url = f"{SERVER_URL}appointments/appointments-fetch/?hospital_id={self.store.get('hospital')['hsp_id']}&sort_term={sort_term}&sort_dir={sort_dir}"
-
-        try:
-            if intent == "search":
-                db_result = asyncio.run(search_appointments(self.store.get('hospital')['hsp_id'], search_term))
-            elif intent == "all":
-                db_result = asyncio.run(fetch_appointments(self.store.get('hospital')['hsp_id'], sort_term, sort_dir))
-            
-            data = [
-                {
-                "appointment_id": app.appointment_id,
-                "hospital_id": app.hospital_id,
-                "patient_id": app.patient_id,
-                "consultant_id": app.consultant_id,
-                "service_id": app.service_id,
-                "appointment_desc": app.appointment_desc,
-                "date_requested": f"{app.date_requested}",
-                "time_requested": f"{app.time_requested}",
-                "patient": {
-                    "patient_id": app.patient.patient_id,
-                    "hospital_id": app.patient.hospital_id,
-                    "patient_name": app.patient.patient_name,
-                    },
-                "service": {
-                    "service_id": app.service.service_id,
-                    "hospital_id": app.service.hospital_id,
-                    "service_name": app.service.hospital_id,
-                    "service_desc": app.service.service_desc,
-                    "service_price": app.service.service_price,
-                    },
-                "consultant": {
-                    "worker_id": app.consultant.worker_id,
-                    "hospital_id": app.consultant.hospital_id,
-                    "worker_name": app.consultant.worker_name,
-                    "worker_email": app.consultant.worker_email,
-                    "worker_phone": app.consultant.worker_phone,
-                    "worker_role": app.consultant.worker_role,
-                    },
-                "date_added": "2025-12-07"
-            } for app in db_result
-            ]
         except Exception:
             data = None
 
@@ -395,18 +337,12 @@ class AppointmentsInfo:
         Thread(target=self.add_appointment, args=(data,), daemon=True).start()
 
     def add_appointment(self, data):
-        #url = f"{SERVER_URL}appointments/appointments-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
-        #response = requests.post(url, json=data)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to add appointment")
-            #return
-        #self.show_snack("Appointment added successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(add_appointment(self.store.get('hospital')['hsp_id'], data))
-            self.show_snack("Appointment scheduled successfully")
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again")
+        url = f"{SERVER_URL}appointments/appointments-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
+        response = requests.post(url, json=data)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync appointment")
             return
+        self.show_snack("Appointment synced to cloud.")
 
     def make_text_field(self, field_name, field_icon, field_text=None):
         text_field = MDTextField(
@@ -527,37 +463,25 @@ class AppointmentsInfo:
         Thread(target=self.edit_apps, args=(data, app_id), daemon=True).start()
 
     def edit_apps(self, data, app_id):
-        #url = f"{SERVER_URL}appointments/appointments-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&appointment_id={app_id}"
-        #response = requests.put(url, json=data)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to edit appointment")
-            #return
-        #self.show_snack("Appointment edited successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(edit_appointment(self.store.get('hospital')['hsp_id'], data))
-            self.show_snack("Appointment edited successfully.")
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again.")
+        url = f"{SERVER_URL}appointments/appointments-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&appointment_id={app_id}"
+        response = requests.put(url, json=data)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync appointment")
             return
+        self.show_snack("Appointment synced successfully")
+
     def start_app_deletion(self, app_id):
         self.show_snack("Please wait as appointment is deleted")
         Thread(target=self.delete_app, args=(app_id,), daemon=True).start()
 
     def delete_app(self, app_id):
-        #url = f"{SERVER_URL}appointments/appointments-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&appointment_id={app_id}"
-        #response = requests.delete(url)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to delete appointment")
-            #return
-        #self.show_snack("Appointment deleted successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(delete_appointment(self.store.get('hospital')['hsp_id'], app_id))
-            self.show_snack("Appointment deleted successfully")
-
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again")
+        url = f"{SERVER_URL}appointments/appointments-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&appointment_id={app_id}"
+        response = requests.delete(url)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync appointment")
             return
-    
+        self.show_snack("Appointment synced successfully")
+
     def show_date_picker(self, target_field):
         day = month = year = "00"
         

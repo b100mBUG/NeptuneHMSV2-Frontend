@@ -22,22 +22,26 @@ from screens.patients import (
     fetch_patients,
     patients_add_form,
     patients_edit_form,
-    confirm_deletion_form
 )
+from screens import patients
+
 from screens.worker import (
     display_workers_info,
     fetch_workers,
     workers_add_form,
     worker_edit_form,
-    confirm_deletion_form
 )
+from screens import worker
+
 from screens.drugs import (
     display_drugs_info,
     fetch_drugs,
     drugs_add_form,
     drug_edit_form,
-    confirm_deletion_form
+    
 )
+from screens import drugs
+
 from screens.diagnoses import DiagnosisInfo
 from screens.prescriptions import PrescriptionsInfo
 from screens.services import (
@@ -45,15 +49,18 @@ from screens.services import (
     fetch_services,
     service_edit_form,
     services_add_form, 
-    confirm_deletion_form
+    
 )
+from screens import services
+
 from screens.lab_tests import (
     display_tests_info,
     fetch_tests,
     tests_add_form,
     test_edit_form,
-    confirm_deletion_form
 )
+from screens import lab_tests
+
 from screens.appointments import AppointmentsInfo
 from screens.lab_requests import RequestsInfo
 from screens.lab_results import ResultsInfo
@@ -228,7 +235,7 @@ class AdminScreen(MDScreen):
                     icon = "trash-can",
                     theme_icon_color = "Custom",
                     icon_color = "red",
-                    on_release = lambda *a: confirm_deletion_form(pat_data.get("patient_id"))
+                    on_release = lambda *a: patients.confirm_deletion_form(pat_data.get("patient_id"))
                 ),
                 spacing = dp(10),
                 padding = dp(10),
@@ -374,7 +381,7 @@ class AdminScreen(MDScreen):
                     icon = "trash-can",
                     theme_icon_color = "Custom",
                     icon_color = "red",
-                    on_release = lambda *a: confirm_deletion_form(wrk_data.get("worker_id"))
+                    on_release = lambda *a: worker.confirm_deletion_form(wrk_data.get("worker_id"))
                 ),
                 spacing = dp(10),
                 padding = dp(10),
@@ -519,7 +526,7 @@ class AdminScreen(MDScreen):
                     icon = "trash-can",
                     theme_icon_color = "Custom",
                     icon_color = "red",
-                    on_release = lambda *a: confirm_deletion_form(drug_data.get("drug_id"))
+                    on_release = lambda *a: drugs.confirm_deletion_form(drug_data.get("drug_id"))
                 ),
                 spacing = dp(10),
                 padding = dp(10),
@@ -1096,7 +1103,7 @@ class AdminScreen(MDScreen):
                     icon = "trash-can",
                     theme_icon_color = "Custom",
                     icon_color = "red",
-                    on_release = lambda *a: confirm_deletion_form(service_data.get("service_id"))
+                    on_release = lambda *a: services.confirm_deletion_form(service_data.get("service_id"))
                 ),
                 spacing = dp(10),
                 padding = dp(10),
@@ -1242,7 +1249,7 @@ class AdminScreen(MDScreen):
                     icon = "trash-can",
                     theme_icon_color = "Custom",
                     icon_color = "red",
-                    on_release = lambda *a: confirm_deletion_form(test_data.get("test_id"))
+                    on_release = lambda *a: lab_tests.confirm_deletion_form(test_data.get("test_id"))
                 ),
                 spacing = dp(10),
                 padding = dp(10),

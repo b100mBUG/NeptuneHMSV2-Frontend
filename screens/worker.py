@@ -25,7 +25,6 @@ from datetime import datetime, timedelta
 import asyncio
 
 from config import SERVER_URL, STORE
-from database.actions import workers
 
 class WorkersRow(MDListItem):
     worker_name = StringProperty("")
@@ -106,8 +105,7 @@ def display_workers_info(
     return scroll
 
 def fetch_workers(intent="all", sort_term="all", sort_dir="desc", search_term="ss", search_by="name", callback=None):
-    #Thread(target=fetch_and_return_online_workers, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
-    Thread(target=fetch_and_return_offline_workers, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
+    Thread(target=fetch_and_return_online_workers, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()
 
 def fetch_and_return_online_workers(intent, sort_term, sort_dir, search_term, search_by, callback):
     url = ""
@@ -122,30 +120,6 @@ def fetch_and_return_online_workers(intent, sort_term, sort_dir, search_term, se
             data = response.json()
         else:
             data = None
-    except Exception:
-        data = None
-
-    if callback:
-        run_on_main_thread(callback, data)
-
-def fetch_and_return_offline_workers(intent, sort_term, sort_dir, search_term, search_by, callback):
-    try:
-        if intent == "all":
-            db_result = asyncio.run(workers.fetch_workers(store.get('hospital')['hsp_id'], sort_term, sort_dir))
-        elif intent == "search":
-            db_result = asyncio.run(workers.search_workers(store.get('hospital')['hsp_id'], search_by, search_term))
-        
-        data = [
-            {
-                "worker_id": wrk.worker_id,
-                "hospital_id": wrk.hospital_id,
-                "worker_name": wrk.worker_name,
-                "worker_email": wrk.worker_email,
-                "worker_phone": wrk.worker_phone,
-                "worker_role": wrk.worker_role,
-                "date_added": f"{wrk.date_added}"
-            } for wrk in db_result
-        ]
     except Exception:
         data = None
 
@@ -224,19 +198,12 @@ def submit_worker_data(data):
     Thread(target=add_worker, args=(data,), daemon=True).start()
 
 def add_worker(data):
-    #url = f"{SERVER_URL}workers/workers-add/?hospital_id={store.get('hospital')['hsp_id']}"
-    #response = requests.post(url, json=data)
-    #if response.status_code != 200:
-        #show_snack("Failed to add worker")
-        #return
-    #show_snack("Worker added successfully. You can refresh the page to view them")
-
-    try:
-        asyncio.run(workers.add_worker(store.get('hospital')['hsp_id'], data))
-        show_snack("Worker added successfully")
-    except Exception as e:
-        show_snack("An unexpected error occurred. Please try again")
+    url = f"{SERVER_URL}workers/workers-add/?hospital_id={store.get('hospital')['hsp_id']}"
+    response = requests.post(url, json=data)
+    if response.status_code != 200:
+        show_snack("Failed to sync worker")
         return
+    show_snack("Worker synced successfully")
 
 def make_text_field(field_name, field_icon, field_text=None):
     text_field = MDTextField(
@@ -401,10 +368,10 @@ def toggle_show_wrk_pass(value, former_password, new_password):
 def confirm_deletion_form(wrk_id):
     confirm_delete_dialog = MDDialog(
         MDDialogIcon(icon="trash-can", theme_icon_color="Custom", icon_color="red"),
-        MDDialogHeadlineText(text="Delete Patient", theme_text_color="Custom", text_color="red"),
+        MDDialogHeadlineText(text="Delete Worker", theme_text_color="Custom", text_color="red"),
         MDDialogContentContainer(
             MDLabel(
-                text = "Deleting a patient is an irreversible process. Are you sure you wish to procede?",
+                text = "Deleting a worker is an irreversible process. Are you sure you wish to procede?",
                 theme_text_color = "Custom", text_color = "blue",
                 bold = True, halign="center"
             )
@@ -440,81 +407,51 @@ def submit_worker_edit_data(data, wrk_id):
     Thread(target=edit_worker, args=(data, wrk_id), daemon=True).start()
 
 def edit_worker(data, wrk_id):
-    #url = f"{SERVER_URL}workers/workers-edit/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
-    #response = requests.put(url, json=data)
-    #if response.status_code != 200:
-        #show_snack("Failed to edit worker")
-        #return
-    #show_snack("Worker edited successfully. You can refresh the page to view them")
-    try:
-        asyncio.run(workers.edit_workers(store.get('hospital')['hsp_id'], wrk_id, data))
-        show_snack("Worker edited successfully")
-    except Exception as e:
-        show_snack("An unexpected error occurred. Please try again")
+    url = f"{SERVER_URL}workers/workers-edit/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
+    response = requests.put(url, json=data)
+    if response.status_code != 200:
+        show_snack("Failed to sync worker")
         return
+    show_snack("Worker synced successfully")
+    
 
 def submit_worker_password_data(data, wrk_id):
     show_snack("Please wait as worker password is edited")
     Thread(target=edit_password, args=(data, wrk_id), daemon=True).start()
 
 def edit_password(data, wrk_id):
-    #url = f"{SERVER_URL}workers/workers-change-password/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
-    #response = requests.put(url, json=data)
-    #if response.status_code != 200:
-        #show_snack("Failed to edit worker password")
-        #return
-    #show_snack("Worker password edited successfully. You can refresh the page to apply")
-    try:
-        asyncio.run(workers.change_password(store.get('hospital')['hsp_id'], wrk_id, data))
-        show_snack("Password changed successfully")
-    except Exception as e:
-        show_snack("An unexpected error occurred. Please try again")
+    url = f"{SERVER_URL}workers/workers-change-password/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
+    response = requests.put(url, json=data)
+    if response.status_code != 200:
+        show_snack("Failed to sync worker password")
         return
-
+    show_snack("Worker password synced successfully")
 
 def start_worker_deletion(wrk_id):
     show_snack("Please wait as worker is deleted")
     Thread(target=delete_worker, args=(wrk_id,), daemon=True).start()
 
 def delete_worker(wrk_id):
-    #url = f"{SERVER_URL}workers/workers-delete/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
-    #response = requests.delete(url)
-    #if response.status_code != 200:
-        #show_snack("Failed to delete worker")
-        #return
-    #show_snack("Worker deleted successfully. You can refresh the page to view them")
-    try:
-        asyncio.run(workers.delete_worker(store.get('hospital')['hsp_id'], wrk_id))
-        show_snack("Worker deleted successfully")
-    except Exception as e:
-        show_snack("An unexpected error occurred. Please try again.")
+    url = f"{SERVER_URL}workers/workers-delete/?hospital_id={store.get('hospital')['hsp_id']}&worker_id={wrk_id}"
+    response = requests.delete(url)
+    if response.status_code != 200:
+        show_snack("Failed to sync worker")
         return
-
+    show_snack("Worker synced successfully")
 
 def start_worker_signin(worker_data: dict, callback=None):
     show_snack("Logging in...")
     Thread(target=signin_thread, args=(worker_data, callback), daemon=True).start()
 
 def signin_thread(wrk_data, callback):
-    #url = f"{SERVER_URL}workers/workers-signin/?hospital_id={store.get('hospital')['hsp_id']}"
-    #response = requests.post(url, json=wrk_data)
-    #if response.status_code != 200:
-        #show_snack("Login Failed")
-        #return
-    
-    #show_snack("Login Successful")
-    try:
-        worker = asyncio.run(workers.signin(store.get('hospital')['hsp_id'], wrk_data))
-        if not worker:
-            show_snack("Invalid credentials. Please try again")
-            return
-        show_snack("Login successful")
-
-    except Exception as e:
-        print(e)
-        show_snack("Failed to login. Try again")
+    url = f"{SERVER_URL}workers/workers-signin/?hospital_id={store.get('hospital')['hsp_id']}"
+    response = requests.post(url, json=wrk_data)
+    if response.status_code != 200:
+        show_snack("Login Failed")
         return
-        
+    
+    show_snack("Login Successful")
+    
     if callback:
         Clock.schedule_once(lambda dt: callback())
     

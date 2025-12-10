@@ -25,6 +25,7 @@ import requests
 from threading import Thread
 from config import SERVER_URL, resource_path
 from datetime import datetime
+from utils import run_async
 
 Builder.load_file(resource_path("screens/home.kv"))
 
@@ -118,7 +119,9 @@ class HomeScreen(MDScreen):
     def show_consultants(self):
         def on_workers_fetched(workers):
             if not workers:
+                print("Workers not found: ", workers)
                 return
+            print(workers)
             self.consultants = workers
             self.make_consultants_container(self.role)
         

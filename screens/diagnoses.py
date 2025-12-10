@@ -25,13 +25,8 @@ import requests
 from datetime import datetime, timedelta
 import asyncio
 
-from config import SERVER_URL
+from config import SERVER_URL, STORE
 from screens.patients import fetch_patients
-from database.actions.diagnosis import (
-    fetch_diagnosis, edit_diagnosis, search_diagnosis,
-    delete_diagnosis, add_diagnosis
-)
-from config import STORE
 
 
 class DiagnosisRow(MDListItem):
@@ -141,8 +136,7 @@ class DiagnosisInfo:
         return scroll
 
     def fetch_diagnoses(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
-        #Thread(target=self.fetch_and_return_online_diagnoses, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
-        Thread(target=self.fetch_and_return_offline_diagnoses, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
+        Thread(target=self.fetch_and_return_online_diagnoses, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
     def fetch_and_return_online_diagnoses(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
@@ -162,41 +156,7 @@ class DiagnosisInfo:
 
         if callback:
             self.run_on_main_thread(callback, data)
-    
-    def fetch_and_return_offline_diagnoses(self, intent, sort_term, sort_dir, search_term, callback):
-        url = ""
-        if intent == "search":
-            url = f"{SERVER_URL}diagnosis/diagnosis-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
-        elif intent == "all":
-            url = f"{SERVER_URL}diagnosis/diagnosis-fetch/?hospital_id={self.store.get('hospital')['hsp_id']}&sort_term={sort_term}&sort_dir={sort_dir}"
 
-        try:
-            if intent == "search":
-                db_result = asyncio.run(search_diagnosis(self.store.get('hospital')['hsp_id'], search_term))
-            elif intent == "all":
-                db_result = asyncio.run(fetch_diagnosis(self.store.get('hospital')['hsp_id'], sort_term, sort_dir))
-            
-            data  = [
-                {
-                    "hospital_id": diag.hospital_id,
-                    "diagnosis_id": diag.diagnosis_id,
-                    "patient_id": diag.patient_id,
-                    "symptoms": diag.symptoms,
-                    "findings": diag.findings,
-                    "suggested_diagnosis": diag.suggested_diagnosis,
-                    "patient": {
-                        "patient_id": diag.patient.patient_id,
-                        "hospital_id": diag.patient.hospital_id,
-                        "patient_name": diag.patient.patient_name,
-                    },
-                    "date_added": f"{diag.date_added.date()}"
-                } for diag in db_result
-            ]
-        except Exception:
-            data = None
-
-        if callback:
-            self.run_on_main_thread(callback, data)
 
     @mainthread
     def run_on_main_thread(self, callback, data):
@@ -290,18 +250,13 @@ class DiagnosisInfo:
         Thread(target=self.add_diagnosis, args=(data,), daemon=True).start()
 
     def add_diagnosis(self, data):
-        #url = f"{SERVER_URL}diagnosis/diagnosis-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
-        #response = requests.post(url, json=data)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to add diagnosis")
-            #return
-        #self.show_snack("Diagnosis added successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(add_diagnosis(self.store.get('hospital')['hsp_id'], data))
-            self.show_snack("Diagnosis added successfully")
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again")
+        url = f"{SERVER_URL}diagnosis/diagnosis-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
+        response = requests.post(url, json=data)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync diagnosis")
             return
+        self.show_snack("Diagnosis synced successfully")
+
     def make_text_field(self, field_name, field_icon, field_text=None):
         text_field = MDTextField(
             MDTextFieldHintText(text=field_name),
@@ -401,36 +356,24 @@ class DiagnosisInfo:
         Thread(target=self.edit_diagnosis, args=(data, diag_id), daemon=True).start()
 
     def edit_diagnosis(self, data, diag_id):
-        #url = f"{SERVER_URL}diagnosis/diagnosis-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&diagnosis_id={diag_id}"
-        #response = requests.put(url, json=data)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to edit diagnosis")
-            #return
-        #self.show_snack("Diagnosis edited successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(edit_diagnosis(self.store.get('hospital')['hsp_id'], diag_id, data))
-            self.show_snack("Diagnosis edited successfully")
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again")
+        url = f"{SERVER_URL}diagnosis/diagnosis-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&diagnosis_id={diag_id}"
+        response = requests.put(url, json=data)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync diagnosis")
             return
+        self.show_snack("Diagnosis synced successfully")
 
     def start_diagnosis_deletion(self, diag_id):
         self.show_snack("Please wait as dignosis is deleted")
         Thread(target=self.delete_diagnosis, args=(diag_id,), daemon=True).start()
 
     def delete_diagnosis(self, diag_id):
-        #url = f"{SERVER_URL}diagnosis/diagnosis-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&diagnosis_id={diag_id}"
-        #response = requests.delete(url)
-        #if response.status_code != 200:
-            #self.show_snack("Failed to delete diagnosis")
-            #return
-        #self.show_snack("Diagnosis deleted successfully. You can refresh the page to view them")
-        try:
-            asyncio.run(delete_diagnosis(self.store.get('hospital')['hsp_id'], diag_id))
-            self.show_snack("Diagnosis deleted successfully")
-        except Exception as e:
-            self.show_snack("An unexpected error occurred. Please try again")
+        url = f"{SERVER_URL}diagnosis/diagnosis-delete/?hospital_id={self.store.get('hospital')['hsp_id']}&diagnosis_id={diag_id}"
+        response = requests.delete(url)
+        if response.status_code != 200:
+            self.show_snack("Failed to sync diagnosis")
             return
+        self.show_snack("Diagnosis synced successfully")
         
     @mainthread
     def make_patients_container(self):

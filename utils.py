@@ -60,3 +60,4 @@ class PDFDownloader:
             size_hint_x=0.5,
             orientation='horizontal'
         ).open()
+

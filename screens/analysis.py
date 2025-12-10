@@ -62,6 +62,8 @@ class AnalysisScreen(MDScreen):
             return
         self.patients = patients
         self.start_patient_analysis()
+
+        Thread(target=self.fetch_drugs_data, daemon=True).start()
     
     def on_drugs_fetched(self, drugs):
         if not drugs:
@@ -69,6 +71,8 @@ class AnalysisScreen(MDScreen):
             return
         self.drugs = drugs
         self.start_drug_analysis()
+
+        Thread(target=self.fetch_billings_data, daemon=True).start()
     
     def start_patient_analysis(self):
         if not self.patients:
@@ -637,7 +641,4 @@ class AnalysisScreen(MDScreen):
         self.start_billings_analysis()
 
     def on_enter(self):
-        self.fetch_patients_data()
-        self.fetch_drugs_data()
-        self.fetch_billings_data()
-        self.initialize_analysis()
+        Thread(target=self.fetch_patients_data, daemon=True).start()

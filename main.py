@@ -8,7 +8,9 @@ from screens.lab import LabScreen
 from screens.doctor import DoctorScreen
 from screens.analysis import AnalysisScreen
 from screens.home import HomeScreen
-import asyncio
+import requests
+import time
+from threading import Thread
 
 class NeptuneHMS(MDApp):
 
@@ -27,7 +29,19 @@ class NeptuneHMS(MDApp):
         self.sm.current = 'home'
         return self.sm
 
+def pinger():
+    print("Starting pinging...")
+    url = "https://neptunev2.onrender.com/hospitals/hospitals-fetch/?sort_term=all&sort_dir=desc"
+    while True:
+        try:
+            response = requests.get(url, timeout=10)
+            print(f"Pinged: {url}: {response.status_code}")
+        except Exception as e:
+            print(f"Ping failed: {e}")
+        time.sleep(30)
+
 
 if __name__ == "__main__":
+    Thread(target=pinger, daemon=True).start()
     app = NeptuneHMS()
     app.run()

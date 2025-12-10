@@ -26,6 +26,7 @@ from threading import Thread
 from config import SERVER_URL, resource_path
 from datetime import datetime
 from utils import run_async
+import os, platform
 
 Builder.load_file(resource_path("screens/home.kv"))
 
@@ -36,8 +37,33 @@ class HomeScreen(MDScreen):
         self.consultants = {}
         self.role = ""
         self.worker_email = ""
-        self.store = JsonStore("hospital_data.json")
         self.image_path = resource_path("assets")
+
+        json_path = self.get_app_data_path("hospital_data.json")
+        self.store = JsonStore(json_path)
+
+    def get_app_data_path(self, filename):
+        system = platform.system()
+        if system == "Windows":
+            base = os.environ.get("APPDATA", os.path.expanduser("~"))
+        elif system == "Darwin": 
+            base = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+        else:  
+            base = os.path.join(os.path.expanduser("~"), ".local", "share")
+
+        if not os.path.exists(base):
+            os.makedirs(base, exist_ok=True)
+
+        return os.path.join(base, filename)
+
+    def resource_path(self, relative_path):
+        """Helper to access assets in exe or script"""
+        if getattr(sys, "frozen", False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_path, relative_path)
+
     
     
     @mainthread
@@ -119,9 +145,8 @@ class HomeScreen(MDScreen):
     def show_consultants(self):
         def on_workers_fetched(workers):
             if not workers:
-                print("Workers not found: ", workers)
+                self.show_snack("Accounts not found")
                 return
-            print(workers)
             self.consultants = workers
             self.make_consultants_container(self.role)
         

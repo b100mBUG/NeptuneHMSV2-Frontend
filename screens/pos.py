@@ -52,13 +52,16 @@ class POSScreen(MDScreen):
         self.current_drug = {}
         self.current_cart = []
         
-    def drugs_mapper(self, drug: dict):
+    def drugs_mapper(self, drug: dict | None):
+        drug = drug or {}
+
         return {
-            'drug_name': drug.get("drug_name", "unknown") or "Unknown",
-            'drug_category': drug.get("drug_category", "unknown") or "unknown",
-            'drug_quantity': f"{drug.get("drug_quantity", 0)} available" or "0",
-            'show_profile': lambda drug_data = drug: self.display_drug(drug_data)
+            'drug_name': (drug.get("drug_name") or "Unknown").strip(),
+            'drug_category': (drug.get("drug_category") or "Unknown").strip(),
+            'drug_quantity': f"{drug.get('drug_quantity', 0)} available",
+            'show_profile': lambda drug_data=drug: self.display_drug(drug_data)
         }
+
     
     def show_drugs(self):
         self.ids.search_field.unbind(text=self.search_drugs)

@@ -38,13 +38,16 @@ class ReceptionScreen(MDScreen):
         data = [mapper(i) for i in items]
         prev.data = data
     
-    def patients_mapper(self, pat: dict):
+    def patients_mapper(self, pat: dict | None):
+        pat = pat or {}
+
         return {
-            'patient_name': pat.get("patient_name", "unknown") or "Unknown",
-            'patient_email': pat.get("patient_email", "example@gmail.com") or "example@gmail.com",
-            'patient_phone': pat.get("patient_phone", "0712345678") or "071234567",
-            'show_profile': lambda pat_data = pat: self.display_patients(pat_data)
+            'patient_name': (pat.get("patient_name") or "Unknown").strip(),
+            'patient_email': (pat.get("patient_email") or "example@gmail.com").strip(),
+            'patient_phone': (pat.get("patient_phone") or "0712345678").strip(),
+            'show_profile': lambda pat_data=pat: self.display_patients(pat_data)
         }
+
 
     def show_patients(self):
         self.current_search_callback = self.search_patients
@@ -184,13 +187,17 @@ class ReceptionScreen(MDScreen):
         )
     
     # Making appointment mapper
-    def appointments_mapper(self, app: dict):
+    def appointments_mapper(self, app: dict | None):
+        app = app or {}
+        patient = app.get("patient") or {}
+
         return {
-            'patient_name': app.get("patient", "unknown")['patient_name'] or "Unknown",
-            'app_desc': app.get("appointment_desc", "unknown") or "unknown",
-            'app_date': f"{app.get("date_requested", "YY-MM-DD")}" or "YY-MM-DD",
-            'show_profile': lambda app_data = app: self.display_appointments(app_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'app_desc': (app.get("appointment_desc") or "Unknown").strip(),
+            'app_date': str(app.get("date_requested") or "YY-MM-DD").strip(),
+            'show_profile': lambda app_data=app: self.display_appointments(app_data)
         }
+
 
     def show_appointments(self):
         self.current_search_callback = self.search_appointments

@@ -30,9 +30,9 @@ def start_online_fetching_bills(filter, pat_id, callback=None):
         if response.status_code == 200:
             data = response.json()
         else:
-            data = None
+            data = []
     except Exception:
-        data = None
+        data = []
 
     if callback:
         run_on_main_thread(callback, data)

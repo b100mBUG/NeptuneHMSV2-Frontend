@@ -38,13 +38,17 @@ class DoctorScreen(MDScreen):
     
     
     # Making diagnosis mapper
-    def diagnosis_mapper(self, diag: dict):
+    def diagnosis_mapper(self, diag: dict | None):
+        diag = diag or {}
+        patient = diag.get("patient") or {}  
+
         return {
-            'patient_name': diag.get("patient", "unknown")['patient_name'] or "Unknown",
-            'symptoms': diag.get("symptoms", "unknown") or "unknown",
-            'diagnosis': f"{diag.get("suggested_diagnosis", 0)}" or "unknown",
-            'show_profile': lambda diag_data = diag: self.display_diagnosis(diag_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'symptoms': (diag.get("symptoms") or "Unknown").strip(),
+            'diagnosis': str(diag.get("suggested_diagnosis") or "Unknown").strip(),
+            'show_profile': lambda diag_data=diag: self.display_diagnosis(diag_data)
         }
+
 
     def show_diagnosis(self):
         self.current_search_callback = self.search_diagnosis
@@ -185,12 +189,16 @@ class DoctorScreen(MDScreen):
         )
     
     # Making prescription mapper
-    def prescriptions_mapper(self, presc: dict):
+    def prescriptions_mapper(self, presc: dict | None):
+        presc = presc or {}
+        entries = presc.get("entries") or []
+
         return {
-            'patient_name': presc.get("patient_name", "unknown") or "Unknown",
-            'items_count': f"{len(presc.get("entries", "unknown"))} Items" or "0",
-            'show_profile': lambda presc_data = presc: self.display_prescriptions(presc_data)
+            'patient_name': (presc.get("patient_name") or "Unknown").strip(),
+            'items_count': f"{len(entries)} Items",
+            'show_profile': lambda presc_data=presc: self.display_prescriptions(presc_data)
         }
+
         
     def show_prescriptions(self):
         self.current_search_callback = self.search_prescriptions
@@ -325,13 +333,18 @@ class DoctorScreen(MDScreen):
         )
     
     # Making requests mapper
-    def requests_mapper(self, request: dict):
+    def requests_mapper(self, request: dict | None):
+        request = request or {}
+        patient = request.get("patient") or {}
+        test = request.get("test") or {}
+
         return {
-            'patient_name': request.get("patient", "unknown")['patient_name'] or "Unknown",
-            'test': request.get("test", "unknown")['test_name'] or "unknown",
-            'desc': f"{request.get("test", 0)['test_desc']}" or "unknown",
-            'show_profile': lambda request_data = request: self.display_requests(request_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'test': (test.get("test_name") or "Unknown").strip(),
+            'desc': (test.get("test_desc") or "Unknown").strip(),
+            'show_profile': lambda request_data=request: self.display_requests(request_data)
         }
+
 
     def show_requests(self):
         self.current_search_callback = self.search_requests
@@ -466,13 +479,17 @@ class DoctorScreen(MDScreen):
         )
     
     # Making results mapper
-    def results_mapper(self, result: dict):
+    def results_mapper(self, result: dict | None):
+        result = result or {}
+        patient = result.get("patient") or {}
+
         return {
-            'patient_name': result.get("patient", "unknown")['patient_name'] or "Unknown",
-            'observations': result.get("observations", "unknown") or "unknown",
-            'conclusions': f"{result.get("conclusion", "unknown")}" or "unknown",
-            'show_profile': lambda result_data = result: self.display_results(result_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'observations': (result.get("observations") or "Unknown").strip(),
+            'conclusions': str(result.get("conclusion") or "Unknown").strip(),
+            'show_profile': lambda result_data=result: self.display_results(result_data)
         }
+
 
     def show_results(self):
         self.current_search_callback = self.search_results

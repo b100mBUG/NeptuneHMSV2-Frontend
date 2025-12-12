@@ -143,9 +143,9 @@ class RequestsInfo:
             if response.status_code == 200:
                 data = response.json()
             else:
-                data = None
+                data = []
         except Exception:
-            data = None
+            data = []
 
         if callback:
             self.run_on_main_thread(callback, data)
@@ -316,11 +316,12 @@ class RequestsInfo:
 
         data = []
         for patient in self.patients:
+            patient = patient or {} 
             data.append({
-                'patient_name': patient['patient_name'] or "unknown",
-                'patient_email': patient['patient_email'] or "example@gmail.com",
-                'patient_phone': patient['patient_phone'] or "0712345678",
-                'show_profile': lambda x=patient['patient_name'], y=patient['patient_id']: self.display_patient(x, y)
+                'patient_name': (patient.get('patient_name') or "Unknown").strip(),
+                'patient_email': (patient.get('patient_email') or "example@gmail.com").lower(),
+                'patient_phone': patient.get('patient_phone') or "0712345678",
+                'show_profile': lambda x=patient.get('patient_name'), y=patient.get('patient_id'): self.display_patient(x, y)
             })
 
         self.patients_prev.data = data
@@ -391,11 +392,12 @@ class RequestsInfo:
 
         data = []
         for test in self.tests:
+            test = test or {}
             data.append({
-                'test_name': test['test_name'] or "unknown",
-                'test_desc': test['test_desc'] or "unknown",
-                'test_price': str(test['test_price']) or "0.0",
-                'show_profile': lambda x=test['test_name'], y=test['test_id']: self.display_tests(x, y)
+                'test_name': (test.get('test_name') or "Unknown").strip(),
+                'test_desc': (test.get('test_desc') or "Unknown").strip(),
+                'test_price': str(test.get('test_price', 0.0)),
+                'show_profile': lambda x=test.get('test_name'), y=test.get('test_id'): self.display_tests(x, y)
             })
 
         self.tests_prev.data = data
@@ -492,7 +494,7 @@ class RequestsInfo:
                     'patient_phone': p['patient_phone'] or "0712345678",
                     'show_profile': lambda x=p['patient_name'], y=p['patient_id']: self.display_patient(x, y)
                 }
-                for p in self.patients
+                for p in (self.patients or [])
             ]
     
     def show_tests(self):
@@ -532,10 +534,10 @@ class RequestsInfo:
         if hasattr(self, "tests_prev"):
             self.tests_prev.data = [
                 {
-                    'test_name': t['test_name'] or "unknown",
-                    'test_desc': t['test_desc'] or "unknown",
-                    'test_price': str(t['test_price']) or "0.0",
-                    'show_profile': lambda x=t['test_name'], y=t['test_id']: self.display_tests(x, y)
+                    'test_name': (t.get('test_name') or "Unknown").strip(),
+                    'test_desc': (t.get('test_desc') or "Unknown").strip(),
+                    'test_price': str(t.get('test_price', 0.0)),
+                    'show_profile': lambda x=t.get('test_name'), y=t.get('test_id'): self.display_tests(x, y)
                 }
-                for t in self.tests
+                for t in (self.tests or [])  
             ]

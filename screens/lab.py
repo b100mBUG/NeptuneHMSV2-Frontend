@@ -42,13 +42,16 @@ class LabScreen(MDScreen):
     
     
     # Making tests mapper
-    def tests_mapper(self, test: dict):
+    def tests_mapper(self, test: dict | None):
+        test = test or {}
+
         return {
-            'test_name': test.get("test_name", "unknown") or "Unknown",
-            'test_desc': test.get("test_desc", "unknown") or "unknown",
-            'test_price': f"Ksh. {test.get("test_price", 0)}" or "Ksh. 0.0",
-            'show_profile': lambda test_data = test: self.display_tests(test_data)
+            'test_name': (test.get("test_name") or "Unknown").strip(),
+            'test_desc': (test.get("test_desc") or "Unknown").strip(),
+            'test_price': f"Ksh. {test.get('test_price', 0)}",
+            'show_profile': lambda test_data=test: self.display_tests(test_data)
         }
+
 
     def show_tests(self):
         self.current_search_callback = self.search_tests
@@ -190,13 +193,18 @@ class LabScreen(MDScreen):
     
     
     # Making requests mapper
-    def requests_mapper(self, request: dict):
+    def requests_mapper(self, request: dict | None):
+        request = request or {}
+        patient = request.get("patient") or {}
+        test = request.get("test") or {}
+
         return {
-            'patient_name': request.get("patient", "unknown")['patient_name'] or "Unknown",
-            'test': request.get("test", "unknown")['test_name'] or "unknown",
-            'desc': f"{request.get("test", 0)['test_desc']}" or "unknown",
-            'show_profile': lambda request_data = request: self.display_requests(request_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'test': (test.get("test_name") or "Unknown").strip(),
+            'desc': (test.get("test_desc") or "Unknown").strip(),
+            'show_profile': lambda request_data=request: self.display_requests(request_data)
         }
+
 
     def show_requests(self):
         self.current_search_callback = self.search_requests

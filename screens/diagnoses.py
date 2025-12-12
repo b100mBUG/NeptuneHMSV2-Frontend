@@ -150,9 +150,9 @@ class DiagnosisInfo:
             if response.status_code == 200:
                 data = response.json()
             else:
-                data = None
+                data = []
         except Exception:
-            data = None
+            data = []
 
         if callback:
             self.run_on_main_thread(callback, data)
@@ -402,11 +402,12 @@ class DiagnosisInfo:
 
         data = []
         for patient in self.patients:
+            patient = patient or {} 
             data.append({
-                'patient_name': patient['patient_name'] or "unknown",
-                'patient_email': patient['patient_email'] or "example@gmail.com",
-                'patient_phone': patient['patient_phone'] or "0712345678",
-                'show_profile': lambda x=patient['patient_name'], y=patient['patient_id']: self.display_patient(x, y)
+                'patient_name': (patient.get('patient_name') or "Unknown").strip(),
+                'patient_email': (patient.get('patient_email') or "example@gmail.com").lower(),
+                'patient_phone': patient.get('patient_phone') or "0712345678",
+                'show_profile': lambda x=patient.get('patient_name'), y=patient.get('patient_id'): self.display_patient(x, y)
             })
 
         self.patients_prev.data = data
@@ -503,5 +504,5 @@ class DiagnosisInfo:
                     'patient_phone': p['patient_phone'] or "0712345678",
                     'show_profile': lambda x=p['patient_name'], y=p['patient_id']: self.display_patient(x, y)
                 }
-                for p in self.patients
+                for p in (self.patients or [])
             ]

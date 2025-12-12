@@ -122,9 +122,9 @@ class ResultsInfo:
             if response.status_code == 200:
                 data = response.json()
             else:
-                data = None
+                data = []
         except Exception:
-            data = None
+            data = []
 
         if callback:
             self.run_on_main_thread(callback, data)
@@ -297,11 +297,12 @@ class ResultsInfo:
 
         data = []
         for patient in self.patients:
+            patient = patient or {} 
             data.append({
-                'patient_name': patient['patient_name'] or "unknown",
-                'patient_email': patient['patient_email'] or "example@gmail.com",
-                'patient_phone': patient['patient_phone'] or "0712345678",
-                'show_profile': lambda x=patient['patient_name'], y=patient['patient_id']: self.display_patient(x, y)
+                'patient_name': (patient.get('patient_name') or "Unknown").strip(),
+                'patient_email': (patient.get('patient_email') or "example@gmail.com").lower(),
+                'patient_phone': patient.get('patient_phone') or "0712345678",
+                'show_profile': lambda x=patient.get('patient_name'), y=patient.get('patient_id'): self.display_patient(x, y)
             })
 
         self.patients_prev.data = data
@@ -397,7 +398,7 @@ class ResultsInfo:
                     'patient_phone': p['patient_phone'] or "0712345678",
                     'show_profile': lambda x=p['patient_name'], y=p['patient_id']: self.display_patient(x, y)
                 }
-                for p in self.patients
+                for p in (self.patients or [])
             ]
     
     def make_text_field(self, field_name, field_icon, field_text=None):
@@ -459,15 +460,6 @@ class ResultsInfo:
         Thread(target=self.edit_res, args=(data, res_id), daemon=True).start()
 
     def edit_res(self, data, res_id):
-        try:
-            asyncio.run(edit_lab_result(self.store.get('hospital')['hsp_id'], res_id, data))
-            self.show_snack("Result edited successfully.")
-        except Exception as e:
-            self.show_snack("An unexpected error ocurred. Please try again")
-            return
-        Thread(target=self.edit_on_cloud, args=(res_id, data), daemon=True).start()
-    
-    def edit_on_cloud(self, res_id, data):
         url = f"{SERVER_URL}lab_results/lab_results-edit/?hospital_id={self.store.get('hospital')['hsp_id']}&lab_result_id={res_id}"
         response = requests.put(url, json=data)
         print(data)

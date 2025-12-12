@@ -157,9 +157,9 @@ class PrescriptionsInfo:
             if response.status_code == 200:
                 data = response.json()
             else:
-                data = None
+                data = []
         except Exception:
-            data = None
+            data = []
 
         if callback:
             self.run_on_main_thread(callback, data)
@@ -349,11 +349,12 @@ class PrescriptionsInfo:
 
         data = []
         for patient in self.patients:
+            patient = patient or {} 
             data.append({
-                'patient_name': patient['patient_name'] or "unknown",
-                'patient_email': patient['patient_email'] or "example@gmail.com",
-                'patient_phone': patient['patient_phone'] or "0712345678",
-                'show_profile': lambda x=patient['patient_name'], y=patient['patient_id']: self.display_patient(x, y)
+                'patient_name': (patient.get('patient_name') or "Unknown").strip(),
+                'patient_email': (patient.get('patient_email') or "example@gmail.com").lower(),
+                'patient_phone': patient.get('patient_phone') or "0712345678",
+                'show_profile': lambda x=patient.get('patient_name'), y=patient.get('patient_id'): self.display_patient(x, y)
             })
 
         self.patients_prev.data = data
@@ -424,12 +425,14 @@ class PrescriptionsInfo:
 
         data = []
         for drug in self.drugs:
+            drug = drug or {} 
             data.append({
-                'drug_name': drug['drug_name'] or "unknown",
-                'drug_category': drug['drug_category'] or "unknown",
-                'drug_quantity': f"{drug['drug_quantity']} available" or "0",
-                'show_profile': lambda x=drug['drug_name'], y=drug['drug_id']: self.display_drugs(x, y)
+                'drug_name': (drug.get('drug_name') or "Unknown").strip(),
+                'drug_category': (drug.get('drug_category') or "Unknown").strip(),
+                'drug_quantity': f"{drug.get('drug_quantity', 0)} available",
+                'show_profile': lambda x=drug.get('drug_name'), y=drug.get('drug_id'): self.display_drugs(x, y)
             })
+
 
         self.drugs_prev.data = data
         self.drugs_display_form(self.drugs_prev)

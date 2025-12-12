@@ -42,6 +42,6 @@ def pinger():
 
 
 if __name__ == "__main__":
-    Thread(target=pinger, daemon=True).start()
+    #Thread(target=pinger, daemon=True).start()
     app = NeptuneHMS()
     app.run()

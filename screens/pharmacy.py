@@ -40,13 +40,16 @@ class PharmacyScreen(MDScreen):
     
     
     # Making drugs mapper
-    def drugs_mapper(self, drug: dict):
+    def drugs_mapper(self, drug: dict | None):
+        drug = drug or {}
+
         return {
-            'drug_name': drug.get("drug_name", "unknown") or "Unknown",
-            'drug_category': drug.get("drug_category", "unknown") or "unknown",
-            'drug_quantity': f"{drug.get("drug_quantity", 0)} available" or "0",
-            'show_profile': lambda drug_data = drug: self.display_drugs(drug_data)
+            'drug_name': (drug.get("drug_name") or "Unknown").strip(),
+            'drug_category': (drug.get("drug_category") or "Unknown").strip(),
+            'drug_quantity': f"{drug.get('drug_quantity', 0)} available",
+            'show_profile': lambda drug_data=drug: self.display_drugs(drug_data)
         }
+
 
     def show_drugs(self):
         self.current_search_callback = self.search_drugs
@@ -186,12 +189,16 @@ class PharmacyScreen(MDScreen):
         )
 
     # Making prescription mapper
-    def prescriptions_mapper(self, presc: dict):
+    def prescriptions_mapper(self, presc: dict | None):
+        presc = presc or {}
+        entries = presc.get("entries") or []
+
         return {
-            'patient_name': presc.get("patient_name", "unknown") or "Unknown",
-            'items_count': f"{len(presc.get("entries", "unknown"))} Items" or "0",
-            'show_profile': lambda presc_data = presc: self.display_prescriptions(presc_data)
+            'patient_name': (presc.get("patient_name") or "Unknown").strip(),
+            'items_count': f"{len(entries)} Items",
+            'show_profile': lambda presc_data=presc: self.display_prescriptions(presc_data)
         }
+
         
     def show_prescriptions(self):
         self.current_search_callback = self.search_prescriptions

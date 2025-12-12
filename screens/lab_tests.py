@@ -111,9 +111,9 @@ def fetch_and_return_online_tests(intent, sort_term, sort_dir, search_term, call
         if response.status_code == 200:
             data = response.json()
         else:
-            data = None
+            data = []
     except Exception:
-        data = None
+        data = []
 
     if callback:
         run_on_main_thread(callback, data)

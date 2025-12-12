@@ -202,7 +202,7 @@ class HomeScreen(MDScreen):
             self.manager.current = "doctor"
         elif self.role == "Lab Tech":
             self.manager.current = "lab"
-        elif self.role == "Pharmacy":
+        elif self.role == "Pharmacist":
             self.manager.current = "pharmacy"
     
     def hosp_signin(self):

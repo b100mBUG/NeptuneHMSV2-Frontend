@@ -97,13 +97,30 @@ class AdminScreen(MDScreen):
         prev.data = data
     
     # Handle mapping, showing and viewing of patients...
-    def patients_mapper(self, pat: dict):
+    def patients_mapper(self, pat: dict | None):
+        pat = pat or {}
         return {
-            'patient_name': pat.get("patient_name", "unknown") or "Unknown",
-            'patient_email': pat.get("patient_email", "example@gmail.com") or "example@gmail.com",
-            'patient_phone': pat.get("patient_phone", "0712345678") or "071234567",
-            'show_profile': lambda pat_data = pat: self.display_patients(pat_data)
+            'patient_name': (pat.get("patient_name") or "Unknown").strip(),
+            'patient_email': (pat.get("patient_email") or "example@gmail.com").lower(),
+            'patient_phone': pat.get("patient_phone") or "0712345678",
+            'show_profile': lambda pat_data=pat: self.display_patients(pat_data)
         }
+
+    def show_billings(self):
+        self.current_search_callback = self.search_patients
+        self.ids.disp_view.clear_widgets()
+        self.ids.add_btn.on_ = lambda *a: patients_add_form()
+        self.ids.sort_btn.on_release = lambda *a: self.show_pat_sort_dropdown(self.ids.sort_btn)
+        self.ids.rec_box.clear_widgets()
+        
+        def on_patients_fetched(patients):
+            if not patients:
+                self.show_snack("Patients not found")
+                return
+            self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
+        
+        fetch_patients("all", "all", "desc", callback=on_patients_fetched)
+
 
     def show_patients(self):
         self.current_search_callback = self.search_patients
@@ -243,14 +260,16 @@ class AdminScreen(MDScreen):
                 height = dp(55)
             )
         )
-    # Making workers mapper
-    def workers_mapper(self, wrk: dict):
+
+    def workers_mapper(self, wrk: dict | None):
+        wrk = wrk or {}  
         return {
-            'worker_name': wrk.get("worker_name", "unknown") or "Unknown",
-            'worker_email': wrk.get("worker_email", "example@gmail.com") or "example@gmail.com",
-            'worker_phone': wrk.get("worker_phone", "0712345678") or "071234567",
-            'show_profile': lambda wrk_data = wrk: self.display_workers(wrk_data)
+            'worker_name': (wrk.get("worker_name") or "Unknown").strip(),
+            'worker_email': (wrk.get("worker_email") or "example@gmail.com").lower(),
+            'worker_phone': wrk.get("worker_phone") or "0712345678",
+            'show_profile': lambda wrk_data=wrk: self.display_workers(wrk_data)
         }
+
 
     def show_workers(self):
         self.current_search_callback = self.search_workers
@@ -390,12 +409,13 @@ class AdminScreen(MDScreen):
             )
         )
     # Making drugs mapper
-    def drugs_mapper(self, drug: dict):
+    def drugs_mapper(self, drug: dict | None):
+        drug = drug or {} 
         return {
-            'drug_name': drug.get("drug_name", "unknown") or "Unknown",
-            'drug_category': drug.get("drug_category", "unknown") or "unknown",
-            'drug_quantity': f"{drug.get("drug_quantity", 0)} available" or "0",
-            'show_profile': lambda drug_data = drug: self.display_drugs(drug_data)
+            'drug_name': (drug.get('drug_name') or "Unknown").strip(),
+            'drug_category': (drug.get('drug_category') or "Unknown").strip(),
+            'drug_quantity': f"{drug.get('drug_quantity', 0)} available",
+            'show_profile': lambda drug_data=drug: self.display_drugs(drug_data)
         }
 
     def show_drugs(self):
@@ -536,12 +556,15 @@ class AdminScreen(MDScreen):
         )
 
     # Making diagnosis mapper
-    def diagnosis_mapper(self, diag: dict):
+    def diagnosis_mapper(self, diag: dict | None):
+        diag = diag or {}
+        patient = diag.get("patient") or {}
+
         return {
-            'patient_name': diag.get("patient", "unknown")['patient_name'] or "Unknown",
-            'symptoms': diag.get("symptoms", "unknown") or "unknown",
-            'diagnosis': f"{diag.get("suggested_diagnosis", 0)}" or "unknown",
-            'show_profile': lambda diag_data = diag: self.display_diagnosis(diag_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'symptoms': (diag.get("symptoms") or "Unknown").strip(),
+            'diagnosis': str(diag.get("suggested_diagnosis") or "Unknown").strip(),
+            'show_profile': lambda diag_data=diag: self.display_diagnosis(diag_data)
         }
 
     def show_diagnosis(self):
@@ -682,12 +705,16 @@ class AdminScreen(MDScreen):
         )
     
     # Making prescription mapper
-    def prescriptions_mapper(self, presc: dict):
+    def prescriptions_mapper(self, presc: dict | None):
+        presc = presc or {}
+        entries = presc.get('entries') or []
+
         return {
-            'patient_name': presc.get("patient_name", "unknown") or "Unknown",
-            'items_count': f"{len(presc.get("entries", "unknown"))} Items" or "0",
-            'show_profile': lambda presc_data = presc: self.display_prescriptions(presc_data)
+            'patient_name': (presc.get('patient_name') or "Unknown").strip(),
+            'items_count': f"{len(entries)} Items",
+            'show_profile': lambda presc_data=presc: self.display_prescriptions(presc_data)
         }
+
         
     def show_prescriptions(self):
         self.current_search_callback = self.search_prescriptions
@@ -821,13 +848,17 @@ class AdminScreen(MDScreen):
         )
     
     # Making appointment mapper
-    def appointments_mapper(self, app: dict):
+    def appointments_mapper(self, app: dict | None):
+        app = app or {}
+        patient = app.get("patient") or {}
+
         return {
-            'patient_name': app.get("patient", "unknown")['patient_name'] or "Unknown",
-            'app_desc': app.get("appointment_desc", "unknown") or "unknown",
-            'app_date': f"{app.get("date_requested", "YY-MM-DD")}" or "YY-MM-DD",
-            'show_profile': lambda app_data = app: self.display_appointments(app_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'app_desc': (app.get("appointment_desc") or "Unknown").strip(),
+            'app_date': str(app.get("date_requested") or "YY-MM-DD"),
+            'show_profile': lambda app_data=app: self.display_appointments(app_data)
         }
+
 
     def show_appointments(self):
         self.current_search_callback = self.search_appointments
@@ -967,12 +998,14 @@ class AdminScreen(MDScreen):
         )
     
     # Making services mapper
-    def services_mapper(self, service: dict):
+    def services_mapper(self, service: dict | None):
+        service = service or {}
+
         return {
-            'service_name': service.get("service_name", "unknown") or "Unknown",
-            'service_desc': service.get("service_desc", "unknown") or "unknown",
-            'service_price': f"Ksh. {service.get("service_price", 0)}" or "Ksh. 0.0",
-            'show_profile': lambda service_data = service: self.display_services(service_data)
+            'service_name': (service.get("service_name") or "Unknown").strip(),
+            'service_desc': (service.get("service_desc") or "Unknown").strip(),
+            'service_price': f"Ksh. {service.get('service_price', 0)}",
+            'show_profile': lambda service_data=service: self.display_services(service_data)
         }
 
     def show_services(self):
@@ -1113,13 +1146,16 @@ class AdminScreen(MDScreen):
         )
     
     # Making tests mapper
-    def tests_mapper(self, test: dict):
+    def tests_mapper(self, test: dict | None):
+        test = test or {}
+
         return {
-            'test_name': test.get("test_name", "unknown") or "Unknown",
-            'test_desc': test.get("test_desc", "unknown") or "unknown",
-            'test_price': f"Ksh. {test.get("test_price", 0)}" or "Ksh. 0.0",
-            'show_profile': lambda test_data = test: self.display_tests(test_data)
+            'test_name': (test.get("test_name") or "Unknown").strip(),
+            'test_desc': (test.get("test_desc") or "Unknown").strip(),
+            'test_price': f"Ksh. {test.get('test_price', 0)}",
+            'show_profile': lambda test_data=test: self.display_tests(test_data)
         }
+
 
     def show_tests(self):
         self.current_search_callback = self.search_tests
@@ -1259,13 +1295,18 @@ class AdminScreen(MDScreen):
         )
     
     # Making requests mapper
-    def requests_mapper(self, request: dict):
+    def requests_mapper(self, request: dict | None):
+        request = request or {}
+        patient = request.get("patient") or {}
+        test = request.get("test") or {}
+
         return {
-            'patient_name': request.get("patient", "unknown")['patient_name'] or "Unknown",
-            'test': request.get("test", "unknown")['test_name'] or "unknown",
-            'desc': f"{request.get("test", 0)['test_desc']}" or "unknown",
-            'show_profile': lambda request_data = request: self.display_requests(request_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'test': (test.get("test_name") or "Unknown").strip(),
+            'desc': (test.get("test_desc") or "Unknown").strip(),
+            'show_profile': lambda request_data=request: self.display_requests(request_data)
         }
+
 
     def show_requests(self):
         self.current_search_callback = self.search_requests
@@ -1399,13 +1440,17 @@ class AdminScreen(MDScreen):
         )
 
     # Making results mapper
-    def results_mapper(self, result: dict):
+    def results_mapper(self, result: dict | None):
+        result = result or {}
+        patient = result.get("patient") or {}
+
         return {
-            'patient_name': result.get("patient", "unknown")['patient_name'] or "Unknown",
-            'observations': result.get("observations", "unknown") or "unknown",
-            'conclusions': f"{result.get("conclusion", "unknown")}" or "unknown",
-            'show_profile': lambda result_data = result: self.display_results(result_data)
+            'patient_name': (patient.get("patient_name") or "Unknown").strip(),
+            'observations': (result.get("observations") or "Unknown").strip(),
+            'conclusions': str(result.get("conclusion") or "Unknown").strip(),
+            'show_profile': lambda result_data=result: self.display_results(result_data)
         }
+
 
     def show_results(self):
         self.current_search_callback = self.search_results

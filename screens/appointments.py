@@ -173,22 +173,28 @@ class AppointmentsInfo:
 
     def fetch_and_return_online_apps(self, intent, sort_term, sort_dir, search_term, callback):
         url = ""
+        hospital_id = self.store.get('hospital', {}).get('hsp_id')
+        if not hospital_id:
+            if callback:
+                self.run_on_main_thread(callback, [])
+            return
+
         if intent == "search":
-            url = f"{SERVER_URL}appointments/appointments-search/?hospital_id={self.store.get('hospital')['hsp_id']}&search_term={search_term}"
+            url = f"{SERVER_URL}appointments/appointments-search/?hospital_id={hospital_id}&search_term={search_term}"
         elif intent == "all":
-            url = f"{SERVER_URL}appointments/appointments-fetch/?hospital_id={self.store.get('hospital')['hsp_id']}&sort_term={sort_term}&sort_dir={sort_dir}"
+            url = f"{SERVER_URL}appointments/appointments-fetch/?hospital_id={hospital_id}&sort_term={sort_term}&sort_dir={sort_dir}"
 
         try:
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-            else:
-                data = None
-        except Exception:
-            data = None
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            print(f"Error fetching apps: {e}")
+            data = []
 
         if callback:
             self.run_on_main_thread(callback, data)
+
 
     @mainthread
     def run_on_main_thread(self, callback, data):
@@ -591,12 +597,14 @@ class AppointmentsInfo:
 
         data = []
         for patient in self.patients:
+            patient = patient or {} 
             data.append({
-                'patient_name': patient['patient_name'] or "unknown",
-                'patient_email': patient['patient_email'] or "example@gmail.com",
-                'patient_phone': patient['patient_phone'] or "0712345678",
-                'show_profile': lambda x=patient['patient_name'], y=patient['patient_id']: self.display_patient(x, y)
+                'patient_name': (patient.get('patient_name') or "Unknown").strip(),
+                'patient_email': (patient.get('patient_email') or "example@gmail.com").lower(),
+                'patient_phone': patient.get('patient_phone') or "0712345678",
+                'show_profile': lambda x=patient.get('patient_name'), y=patient.get('patient_id'): self.display_patient(x, y)
             })
+
 
         self.patients_prev.data = data
         self.patients_display_form(self.patients_prev)
@@ -666,11 +674,12 @@ class AppointmentsInfo:
 
         data = []
         for service in self.services:
+            service = service or {}  
             data.append({
-                'service_name': service['service_name'] or "unknown",
-                'service_desc': service['service_desc'] or "unknown",
-                'service_price': str(service['service_price']) or "0.0",
-                'show_profile': lambda x=service['service_name'], y=service['service_id']: self.display_service(x, y)
+                'service_name': (service.get('service_name') or "Unknown").strip(),
+                'service_desc': (service.get('service_desc') or "Unknown").strip(),
+                'service_price': str(service.get('service_price', 0.0)),
+                'show_profile': lambda x=service.get('service_name'), y=service.get('service_id'): self.display_service(x, y)
             })
 
         self.services_prev.data = data
@@ -741,11 +750,12 @@ class AppointmentsInfo:
 
         data = []
         for c in self.consultants:
+            c = c or {} 
             data.append({
-                'worker_name': c['worker_name'] or "unknown",
-                'worker_email': c['worker_email'] or "unknown",
-                'worker_role': c['worker_role'] or "unknown",
-                'show_profile': lambda x=c['worker_name'], y=c['worker_id']: self.display_consultants(x, y)
+                'worker_name': (c.get('worker_name') or "Unknown").strip(),
+                'worker_email': (c.get('worker_email') or "unknown").lower(),
+                'worker_role': (c.get('worker_role') or "Unknown").strip(),
+                'show_profile': lambda x=c.get('worker_name'), y=c.get('worker_id'): self.display_consultants(x, y)
             })
 
         self.consultants_prev.data = data
@@ -842,7 +852,7 @@ class AppointmentsInfo:
                     'patient_phone': p['patient_phone'] or "0712345678",
                     'show_profile': lambda x=p['patient_name'], y=p['patient_id']: self.display_patient(x, y)
                 }
-                for p in self.patients
+                for p in (self.patients or [])
             ]
     
     
@@ -888,7 +898,7 @@ class AppointmentsInfo:
                     'service_price': str(s['service_price']) or "0.0",
                     'show_profile': lambda x=s['service_name'], y=s['service_id']: self.display_service(x, y)
                 }
-                for s in self.services
+                for s in (self.services or [])
             ]
     
     def show_consultants(self):
@@ -932,5 +942,5 @@ class AppointmentsInfo:
                     'worker_role': c['worker_role'] or "unknown",
                     'show_profile': lambda x=c['worker_name'], y=c['worker_id']: self.display_consultants(x, y)
                 }
-                for c in self.consultants
+                for c in (self.consultants or [])
             ]

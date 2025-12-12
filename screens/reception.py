@@ -16,6 +16,7 @@ from screens.patients import (
     confirm_deletion_form
 )
 from screens.appointments import AppointmentsInfo
+from screens.billings import BillingsInfo
 from config import resource_path
 
 
@@ -48,6 +49,8 @@ class ReceptionScreen(MDScreen):
             'show_profile': lambda pat_data=pat: self.display_patients(pat_data)
         }
 
+    def show_billings(self):
+        BillingsInfo().show_patient_billings()
 
     def show_patients(self):
         self.current_search_callback = self.search_patients

@@ -34,6 +34,12 @@
                         disp_view.clear_widgets()
                         root.show_appointments()
                 MDActionTopAppBarButton:
+                    icon: "cash"
+                    theme_icon_color: "Custom"
+                    icon_color: "blue"
+                    on_release: 
+                        root.show_billings()
+                MDActionTopAppBarButton:
                     icon: "logout"
                     theme_icon_color: "Custom"
                     icon_color: "red"

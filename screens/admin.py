@@ -61,6 +61,9 @@ from screens.lab_tests import (
 )
 from screens import lab_tests
 
+from screens import billings
+from screens.billings import BillingsInfo
+
 from screens.appointments import AppointmentsInfo
 from screens.lab_requests import RequestsInfo
 from screens.lab_results import ResultsInfo
@@ -106,25 +109,11 @@ class AdminScreen(MDScreen):
             'show_profile': lambda pat_data=pat: self.display_patients(pat_data)
         }
 
-    def show_billings(self):
-        self.current_search_callback = self.search_patients
-        self.ids.disp_view.clear_widgets()
-        self.ids.add_btn.on_ = lambda *a: patients_add_form()
-        self.ids.sort_btn.on_release = lambda *a: self.show_pat_sort_dropdown(self.ids.sort_btn)
-        self.ids.rec_box.clear_widgets()
-        
-        def on_patients_fetched(patients):
-            if not patients:
-                self.show_snack("Patients not found")
-                return
-            self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
-        
-        fetch_patients("all", "all", "desc", callback=on_patients_fetched)
-
 
     def show_patients(self):
         self.current_search_callback = self.search_patients
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: patients_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_pat_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -274,6 +263,7 @@ class AdminScreen(MDScreen):
     def show_workers(self):
         self.current_search_callback = self.search_workers
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: workers_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_wrk_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -421,6 +411,7 @@ class AdminScreen(MDScreen):
     def show_drugs(self):
         self.current_search_callback = self.search_drugs
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: drugs_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_drug_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -570,6 +561,7 @@ class AdminScreen(MDScreen):
     def show_diagnosis(self):
         self.current_search_callback = self.search_diagnosis
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: DiagnosisInfo().diagnoses_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_diags_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -719,6 +711,7 @@ class AdminScreen(MDScreen):
     def show_prescriptions(self):
         self.current_search_callback = self.search_prescriptions
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: PrescriptionsInfo().prescriptions_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_prescs_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -863,6 +856,7 @@ class AdminScreen(MDScreen):
     def show_appointments(self):
         self.current_search_callback = self.search_appointments
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: AppointmentsInfo().apps_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_apps_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -1011,6 +1005,7 @@ class AdminScreen(MDScreen):
     def show_services(self):
         self.current_search_callback = self.search_services
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: services_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_service_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -1160,6 +1155,7 @@ class AdminScreen(MDScreen):
     def show_tests(self):
         self.current_search_callback = self.search_tests
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: tests_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_test_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -1311,6 +1307,7 @@ class AdminScreen(MDScreen):
     def show_requests(self):
         self.current_search_callback = self.search_requests
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: RequestsInfo().requests_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_request_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -1455,6 +1452,7 @@ class AdminScreen(MDScreen):
     def show_results(self):
         self.current_search_callback = self.search_results
         self.ids.disp_view.clear_widgets()
+        self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: ResultsInfo().results_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_result_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
@@ -1589,6 +1587,73 @@ class AdminScreen(MDScreen):
                 height = dp(55)
             )
         )
+    
+    # Handle mapping, showing and viewing of patients...
+    def billings_mapper(self, bill: dict | None):
+        bill = bill or {}
+        patient = bill.get("patient") or {}  
+        return {
+            'patient_name': (patient.get("patient_name") or "OTC").strip(),
+            'item_and_source': f"{(bill.get('item') or 'item').lower()} | {(bill.get('source') or 'source')}",
+            'total': f"{bill.get('total') or '0'}",
+            'show_profile': lambda bill_data=bill: self.display_billings(bill_data)
+        }
+
+    
+    def show_billings(self):
+        self.current_search_callback = self.search_billings
+        self.ids.disp_view.clear_widgets()
+        self.ids.add_btn.on_release = lambda *a: BillingsInfo().show_patient_billings()
+        self.ids.sort_btn.disabled = True
+        self.ids.rec_box.clear_widgets()
+        
+        def on_billings_fetched(billings):
+            if not billings:
+                self.show_snack("Billings not found")
+                return
+            self.display_items("BillingsRow", billings, "billings", self.billings_mapper)
+        
+        billings.fetch_billings("all", "", callback=on_billings_fetched)
+    
+    def search_billings(self, *args):
+        term = self.ids.search_field.text.strip()
+        if not term:
+            self.show_snack("Enter something to search")
+            self.show_billings()
+            return
+
+        def on_billings_fetched(billings):
+            if not billings:
+                print("Billings not found")
+                return
+            self.display_items("BillingsRow", billings, "billings", self.billings_mapper)
+
+        billings.fetch_billings(filter="search", search_term=term, callback=on_billings_fetched)
+    
+    def display_billings(self, bill_data: dict):
+        self.preview_display(
+            billings.display_billings(
+                bill_data
+            ),
+            MDBoxLayout(
+                MDLabel(
+                    text = "Billing Preview",
+                    size_hint_y = None,
+                    height = dp(50),
+                    theme_font_size = "Custom",
+                    font_size = "28sp",
+                    theme_text_color = "Custom", 
+                    text_color = "blue",
+                    halign = "center",
+                    bold = True
+                ),
+                spacing = dp(10),
+                padding = dp(10),
+                size_hint_y = None,
+                height = dp(55)
+            )
+        )
+
     def settings_form(self):
         self.hosp_edit_name = MDTextField(
             MDTextFieldLeadingIcon(

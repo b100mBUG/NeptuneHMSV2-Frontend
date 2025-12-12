@@ -172,8 +172,7 @@ class AppointmentsInfo:
         Thread(target=self.fetch_and_return_online_apps, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()
 
     def fetch_and_return_online_apps(self, intent, sort_term, sort_dir, search_term, callback):
-        url = ""
-        hospital_id = self.store.get('hospital', {}).get('hsp_id')
+        hospital_id = (self.store.get('hospital') or {}).get('hsp_id')
         if not hospital_id:
             if callback:
                 self.run_on_main_thread(callback, [])
@@ -194,6 +193,7 @@ class AppointmentsInfo:
 
         if callback:
             self.run_on_main_thread(callback, data)
+
 
 
     @mainthread

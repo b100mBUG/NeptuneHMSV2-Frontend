@@ -405,7 +405,7 @@ class AnalysisScreen(MDScreen):
             percentage_diff = ((this_month_total - last_month_total) / last_month_total) * 100
 
         self.ids.last_month_revenue.text = f"Ksh. {self.human_readable(last_month_total)}"
-        self.ids.this_month_revenue.text = f"ksh. {self.human_readable(this_month_total)}"
+        self.ids.this_month_revenue.text = f"Ksh. {self.human_readable(this_month_total)}"
     
     def plot_monthly_revenue_waterfall(self):
         today = datetime.today().date()

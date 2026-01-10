@@ -66,86 +66,107 @@ def make_display_label(text, color="blue"):
 
 store = STORE
 
-def display_patients_info(
-    pat_data,
-):
+def display_patients_info(pat_data: dict):
+
+    patient_name = (pat_data.get("patient_name") or "Unknown").upper()
+    patient_email = pat_data.get("patient_email", "example@gmail.com")
+    patient_phone = pat_data.get("patient_phone", "0712345678")
+    patient_id = pat_data.get("patient_id_no", "123456778")
+    patient_gender = pat_data.get("patient_gender", "unknown")
+    patient_address = pat_data.get("patient_address", "unknown")
+    patient_dob = pat_data.get("patient_dob", "YY-MM-DD")
+
+    patient_weight = pat_data.get("patient_weight", "unknown")
+    patient_avg_pulse = pat_data.get("patient_avg_pulse", "unknown")
+    patient_bp = pat_data.get("patient_bp", "unknown")
+    patient_chronic = pat_data.get("patient_chronic_condition", "unknown")
+    patient_allergy = pat_data.get("patient_allergy", "unknown")
+    patient_blood = pat_data.get("patient_blood_type", "unknown")
+    date_added = pat_data.get("date_added", "YY-MM-DD")
+
     bio_head = MDLabel(
-        text = "BIO INFO",
-        theme_text_color = "Custom",
-        text_color = "blue",
-        halign = "center"
+        text="BIO INFO",
+        theme_text_color="Custom",
+        text_color="blue",
+        halign="center",
     )
 
     medic_head = MDLabel(
-        text = "MEDICAL INFO",
-        theme_text_color = "Custom",
-        text_color = "blue",
-        halign = "center"
+        text="MEDICAL INFO",
+        theme_text_color="Custom",
+        text_color="blue",
+        halign="center",
     )
 
-    name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    name_box.add_widget(make_display_label(f"   Patient: {pat_data.get('patient_name', "Unknown").upper()}"))
+    name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    name_box.add_widget(MDIcon(icon="account-heart", theme_icon_color="Custom", icon_color="blue"))
+    name_box.add_widget(make_display_label(f"Patient: {patient_name}"))
 
-    email_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    email_box.add_widget(MDIcon(icon="gmail", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    email_box.add_widget(make_display_label(f"   Email: {pat_data.get('patient_email', "example@gmail.com")}"))
-    
-    phone_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    phone_box.add_widget(MDIcon(icon="phone", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    phone_box.add_widget(make_display_label(text = f"   Contact: {pat_data.get('patient_phone', "0712345678")}"))
-    
-    id_no_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    id_no_box.add_widget(MDIcon(icon="card-account-details", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    id_no_box.add_widget(make_display_label(f"   National ID: {pat_data.get('patient_id_no', "123456778")}"))
-    
-    gender_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    gender_box.add_widget(MDIcon(icon="gender-male-female", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    gender_box.add_widget(make_display_label(f"   Gender: {pat_data.get('patient_gender', "unknown")}",))
-    
-    address_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    address_box.add_widget(MDIcon(icon="map-marker", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    address_box.add_widget(make_display_label(f"   Address: {pat_data.get('patient_address', "unknown")}"))
-    
-    dob_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    dob_box.add_widget(MDIcon(icon="calendar-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    dob_box.add_widget(make_display_label(f"   Born On: {pat_data.get('patient_dob', "YY-MM-DD")}"))
-    
-    weight_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    weight_box.add_widget(MDIcon(icon="weight-kilogram", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    weight_box.add_widget(make_display_label(f"   Weight: {pat_data.get('patient_weight', "unknown")} KG"))
-    
-    avg_pulse_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    avg_pulse_box.add_widget(MDIcon(icon="heart-pulse", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    avg_pulse_box.add_widget(make_display_label(f"   Avg. Pulse: {pat_data.get('patient_avg_weight', "unknown")} BpM"))
-    
-    bp_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    bp_box.add_widget(MDIcon(icon="gauge", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    bp_box.add_widget(make_display_label(f"   Blood Pressure: {pat_data.get('patient_bp', "unknown")} mmHg"))
-    
-    chronic_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    chronic_box.add_widget(MDIcon(icon="medical-bag", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    chronic_box.add_widget(make_display_label(f"   Chronics: {pat_data.get('patient_chronic_condition', "unknown")}"))
-    
-    allergy_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    allergy_box.add_widget(MDIcon(icon="allergy", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    allergy_box.add_widget(make_display_label(f"   Allergies: {pat_data.get('patient_allergy', "unknown")}"))
-    
-    blood_type_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    blood_type_box.add_widget(MDIcon(icon="blood-bag", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    blood_type_box.add_widget(make_display_label(f"   Blood Type: {pat_data.get('patient_blood_type', "unknown")}"))
-    
-    date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    date_box.add_widget(make_display_label(f"   Added On: {pat_data.get('date_added', "YY-MM-DD")}"))
-    
-    grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+    email_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    email_box.add_widget(MDIcon(icon="gmail", theme_icon_color="Custom", icon_color="blue"))
+    email_box.add_widget(make_display_label(f"Email: {patient_email}"))
+
+    phone_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    phone_box.add_widget(MDIcon(icon="phone", theme_icon_color="Custom", icon_color="blue"))
+    phone_box.add_widget(make_display_label(f"Contact: {patient_phone}"))
+
+    id_no_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    id_no_box.add_widget(MDIcon(icon="card-account-details", theme_icon_color="Custom", icon_color="blue"))
+    id_no_box.add_widget(make_display_label(f"National ID: {patient_id}"))
+
+    gender_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    gender_box.add_widget(MDIcon(icon="gender-male-female", theme_icon_color="Custom", icon_color="blue"))
+    gender_box.add_widget(make_display_label(f"Gender: {patient_gender}"))
+
+    address_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    address_box.add_widget(MDIcon(icon="map-marker", theme_icon_color="Custom", icon_color="blue"))
+    address_box.add_widget(make_display_label(f"Address: {patient_address}"))
+
+    dob_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    dob_box.add_widget(MDIcon(icon="calendar-heart", theme_icon_color="Custom", icon_color="blue"))
+    dob_box.add_widget(make_display_label(f"Born On: {patient_dob}"))
+
+    weight_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    weight_box.add_widget(MDIcon(icon="weight-kilogram", theme_icon_color="Custom", icon_color="blue"))
+    weight_box.add_widget(make_display_label(f"Weight: {patient_weight} KG"))
+
+    avg_pulse_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    avg_pulse_box.add_widget(MDIcon(icon="heart-pulse", theme_icon_color="Custom", icon_color="blue"))
+    avg_pulse_box.add_widget(make_display_label(f"Avg. Pulse: {patient_avg_pulse} BpM"))
+
+    bp_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    bp_box.add_widget(MDIcon(icon="gauge", theme_icon_color="Custom", icon_color="blue"))
+    bp_box.add_widget(make_display_label(f"Blood Pressure: {patient_bp} mmHg"))
+
+    chronic_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    chronic_box.add_widget(MDIcon(icon="medical-bag", theme_icon_color="Custom", icon_color="blue"))
+    chronic_box.add_widget(make_display_label(f"Chronics: {patient_chronic}"))
+
+    allergy_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    allergy_box.add_widget(MDIcon(icon="allergy", theme_icon_color="Custom", icon_color="blue"))
+    allergy_box.add_widget(make_display_label(f"Allergies: {patient_allergy}"))
+
+    blood_type_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    blood_type_box.add_widget(MDIcon(icon="blood-bag", theme_icon_color="Custom", icon_color="blue"))
+    blood_type_box.add_widget(make_display_label(f"Blood Type: {patient_blood}"))
+
+    date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    date_box.add_widget(MDIcon(icon="calendar", theme_icon_color="Custom", icon_color="blue"))
+    date_box.add_widget(make_display_label(f"Added On: {date_added}"))
+
+    grid = MDGridLayout(
+        cols=1,
+        padding=dp(10),
+        spacing=dp(10),
+        adaptive_height=True,
+    )
+
     scroll = MDScrollView()
     scroll.add_widget(grid)
-    
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
-    grid.add_widget(bio_head) 
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10))) 
+
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
+    grid.add_widget(bio_head)
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
     grid.add_widget(name_box)
     grid.add_widget(email_box)
     grid.add_widget(phone_box)
@@ -153,10 +174,12 @@ def display_patients_info(
     grid.add_widget(gender_box)
     grid.add_widget(address_box)
     grid.add_widget(dob_box)
+
     grid.add_widget(MDDivider())
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
     grid.add_widget(medic_head)
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
+
     grid.add_widget(weight_box)
     grid.add_widget(avg_pulse_box)
     grid.add_widget(bp_box)
@@ -164,8 +187,9 @@ def display_patients_info(
     grid.add_widget(allergy_box)
     grid.add_widget(blood_type_box)
     grid.add_widget(date_box)
-    
+
     return scroll
+
 
 def fetch_patients(intent="all", sort_term="all", sort_dir="desc", search_term="ss", search_by="ss", callback=None):
     Thread(target=fetch_and_return_online_patients, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()

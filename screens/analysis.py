@@ -7,6 +7,8 @@ from kivy.metrics import dp, sp
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
+from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.pickers import MDDockedDatePicker
 
 from screens.patients import fetch_patients
 from screens.drugs import fetch_drugs
@@ -15,6 +17,8 @@ from config import resource_path, SERVER_URL, STORE
 from utils import PDFDownloader
 
 from datetime import datetime, timedelta
+import matplotlib
+matplotlib.use('module://kivy_garden.matplotlib.backend_kivy')
 import matplotlib.pyplot as plt
 import webbrowser
 from threading import Thread
@@ -82,8 +86,8 @@ class AnalysisScreen(MDScreen):
         self.analyse_new_patients()
         self.analyse_age_patients()
         self.analyse_gender_patients()
-        Thread(target=self.plot_weekly_patients, daemon=True).start()
-        Thread(target=self.plot_monthly_patients, daemon=True).start()
+        Clock.schedule_once(self.plot_weekly_patients, 1)
+        Clock.schedule_once(self.plot_monthly_patients, 1)
     
     def analyse_all_patients(self):
         total = len(self.patients)
@@ -124,7 +128,7 @@ class AnalysisScreen(MDScreen):
         self.ids.adult_patients_label.text = self.human_readable(len(adult_pats))
         self.ids.child_patients_label.text = self.human_readable(len(child_pats))
     
-    def plot_weekly_patients(self):
+    def plot_weekly_patients(self, dt):
         today = datetime.today().date()
         last_7_days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]  
 
@@ -177,7 +181,7 @@ class AnalysisScreen(MDScreen):
         self.ids.weekly_patients.clear_widgets()
         self.ids.weekly_patients.add_widget(FigureCanvasKivyAgg(fig))
 
-    def plot_monthly_patients(self):
+    def plot_monthly_patients(self, dt):
         today = datetime.today().date()
         first_day = today.replace(day=1)
 
@@ -239,7 +243,7 @@ class AnalysisScreen(MDScreen):
         self.analyse_available_drugs()
         self.analyse_depleted_drugs()
         self.analyse_sellable_drugs()
-        Thread(target=self.plot_drug_charts, daemon=True).start()
+        Clock.schedule_once(self.plot_drug_charts, 1)
     
     def analyse_all_drugs(self):
         all_drugs = len(self.drugs)
@@ -301,7 +305,7 @@ class AnalysisScreen(MDScreen):
 
         self.ids.sellable_drugs_label.text = self.human_readable(len(sellable_drugs))
     
-    def plot_drug_charts(self):
+    def plot_drug_charts(self, dt):
         pie_labels = ["Expired", "Safe", "Sellable"]
         pie_sizes = [len(self.expired_drugs), len(self.safe_drugs), len(self.sellable_drugs)]
         if sum(pie_sizes) == 0: 
@@ -369,7 +373,7 @@ class AnalysisScreen(MDScreen):
             self.show_snack("No billings to analyse")
             return
         self.compare_monthly_sales()
-        Thread(target=self.plot_monthly_revenue_waterfall, daemon=True).start()
+        Clock.schedule_once(self.plot_monthly_revenue_waterfall, 1)
     
 
     def compare_monthly_sales(self):
@@ -407,7 +411,7 @@ class AnalysisScreen(MDScreen):
         self.ids.last_month_revenue.text = f"Ksh. {self.human_readable(last_month_total)}"
         self.ids.this_month_revenue.text = f"Ksh. {self.human_readable(this_month_total)}"
     
-    def plot_monthly_revenue_waterfall(self):
+    def plot_monthly_revenue_waterfall(self, dt):
         today = datetime.today().date()
         first_day = today.replace(day=1)
         last_day = today
@@ -506,6 +510,10 @@ class AnalysisScreen(MDScreen):
         if filter == "total":
             patients = self.patients
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "all")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="all",
+                format="csv"
+            )
 
         elif filter == "new":
             today = datetime.today().date()
@@ -516,6 +524,10 @@ class AnalysisScreen(MDScreen):
                 if thirty_days_ago <= datetime.strptime(pat['date_added'], "%Y-%m-%d").date() <= today
             ]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "new")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="new",
+                format="csv"
+            )
 
         elif filter == "adults":
             today = datetime.today().date()
@@ -531,6 +543,10 @@ class AnalysisScreen(MDScreen):
             patients = adult_pats
 
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "adults")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="adults",
+                format="csv"
+            )
         
         elif filter == "children":
             today = datetime.today().date()
@@ -545,13 +561,25 @@ class AnalysisScreen(MDScreen):
             
             patients = child_pats
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "children")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="children",
+                format="csv"
+            )
         elif filter == "male":
             patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "male"]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "male")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="male",
+                format="csv"
+            )
         
         elif filter == "female":
             patients = [pat for pat in self.patients if pat['patient_gender'].lower() == "female"]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("patients", "female")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="patients", filter="female",
+                format="csv"
+            )
 
         self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
         
@@ -568,6 +596,10 @@ class AnalysisScreen(MDScreen):
         if filter == "total":
             drugs = self.drugs
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "all")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="all",
+                format="csv"
+            )
         elif filter == "new":
             today = datetime.today().date()
             thirty_days_ago = today - timedelta(days=30)
@@ -577,23 +609,43 @@ class AnalysisScreen(MDScreen):
                 if thirty_days_ago <= datetime.strptime(drug['date_added'], "%Y-%m-%d").date() <= today
             ]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "new")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="new",
+                format="csv"
+            )
         elif filter == "expired":
             today = datetime.today().date()
             drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() <= today]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "expired")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="expired",
+                format="csv"
+            )
         
         elif filter == "safe":
             today = datetime.today().date()
             drugs = [drug for drug in self.drugs if datetime.strptime(drug["drug_expiry"], "%Y-%m-%d").date() > today]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "safe")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="safe",
+                format="csv"
+            )
 
         elif filter == "available":
             drugs = [drug for drug in self.drugs if drug["drug_quantity"] > 0]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "available")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="available",
+                format="csv"
+            )
         
         elif filter == "depleted":
             drugs = [drug for drug in self.drugs if drug["drug_quantity"] <= 0]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "depleted")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="depleted",
+                format="csv"
+            )
         
         elif filter == "sellable":
             today = datetime.today().date()
@@ -606,6 +658,10 @@ class AnalysisScreen(MDScreen):
                 drug not in expired_drugs
             ]
             self.ids.pdf_downloader.on_release = lambda *a: self.pdf_downloader.download_document("drugs", "sellable")
+            self.ids.csv_downloader.on_release = lambda *a: self.pdf_downloader.download_document(
+                source="drugs", filter="sellable",
+                format="csv"
+            )
 
         self.display_items("DrugsRow", drugs, "worker", self.drugs_mapper)
 
@@ -639,6 +695,194 @@ class AnalysisScreen(MDScreen):
         self.start_patient_analysis()
         self.start_drug_analysis()
         self.start_billings_analysis()
+    
+    def show_filter_dropdown(self, caller):
+        drop_down_items = [
+            {
+                "text": "Appointments",
+                "theme_text_color": "Custom",
+                "text_color": "blue",
+                "bold": True,
+                "icon": "gender-male",
+                "theme_icon_color": "Custom",
+                "icon_color": "blue",
+                "on_release": lambda *a: self.fill_filter_text("Appointments")
+            },
+            {
+                "text": "Lab Results",
+                "theme_text_color": "Custom",
+                "text_color": "blue",
+                "bold": True,
+                "icon": "gender-female",
+                "theme_icon_color": "Custom",
+                "icon_color": "blue",
+                "on_release": lambda *a: self.fill_filter_text("Lab Results")
+            },
+            {
+                "text": "Lab Requests",
+                "theme_text_color": "Custom",
+                "text_color": "blue",
+                "bold": True,
+                "icon": "gender-male",
+                "theme_icon_color": "Custom",
+                "icon_color": "blue",
+                "on_release": lambda *a: self.fill_filter_text("Lab Requests")
+            },
+            {
+                "text": "Diagnoses",
+                "theme_text_color": "Custom",
+                "text_color": "blue",
+                "bold": True,
+                "icon": "gender-female",
+                "theme_icon_color": "Custom",
+                "icon_color": "blue",
+                "on_release": lambda *a: self.fill_filter_text("Diagnoses")
+            }
+        ]
+
+        self.filter_menu = MDDropdownMenu(
+            caller=caller,
+            items=drop_down_items,
+            width_mult=4
+        )
+        self.filter_menu.open()
+    
+    def fill_filter_text(self, text):
+        self.ids.filter_text.text = text
+        self.filter_menu.dismiss()
+    
+    def show_date_picker(self, target_field):
+        day = month = year = "00"
+        
+        def on_select_day(instance, value):
+            nonlocal day
+            day = f"{int(value):02}" if value else "00"
+
+        def on_select_month(instance, value):
+            nonlocal month
+            month = f"{int(value):02}" if value else "00"
+
+        def on_select_year(instance, value):
+            nonlocal year
+            year = str(value) if value else "0000"
+
+        def create_date(*args):
+            date = f"{year}-{month}-{day}"
+            target_field.text = date
+            date_dialog.dismiss()
+
+        def close_date_dialog(*args):
+            date_dialog.dismiss()
+
+        date_dialog = MDDockedDatePicker()
+        date_dialog.pos_hint = {"center_x": .5, "center_y": .5}
+        date_dialog.bind(
+            on_select_day=on_select_day,
+            on_select_month=on_select_month,
+            on_select_year=on_select_year,
+            on_ok=create_date,
+            on_cancel=close_date_dialog
+        )
+        date_dialog.open()
+    
+    def is_valid_date(self, date_str):
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+            return True
+        except ValueError:
+            return False
+
+    def download_filter_doc_pdf(self):
+        target = self.ids.filter_text.text
+        source = ""
+        if target == "Appointments":
+            source = "appointments"
+        elif target == "Lab Results":
+            source = "lab_results"
+        elif target == "Lab Requests":
+            source = "lab_requests"
+        elif target == "Diagnoses":
+            source = "diagnoses"
+        
+        start_date = self.ids.start_date_field.text.strip()
+        end_date = self.ids.end_date_field.text.strip()
+
+        if not start_date:
+            self.show_snack("Enter start date")
+            return
+        
+        if not end_date:
+            self.show_snack("Enter end date")
+            return
+
+        if not self.is_valid_date(start_date):
+            self.show_snack("Invalid start date")
+            return
+
+        if not self.is_valid_date(end_date):
+            self.show_snack("Invalid end date")
+            return
+        
+        if datetime.strptime(end_date, "%Y-%m-%d") < datetime.strptime(start_date, "%Y-%m-%d"):
+            self.show_snack("End date must be higher than start date.")
+            return
+
+        if datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d") > timedelta(days=90):
+            self.show_snack("Too large date range. Try a lower one.")
+            return
+        
+        self.pdf_downloader.download_document(
+            source=source,
+            start_date=start_date,
+            end_date=end_date
+        )
+    
+    def download_filter_doc_csv(self):
+        target = self.ids.filter_text.text
+        source = ""
+        if target == "Appointments":
+            source = "appointments"
+        elif target == "Lab Results":
+            source = "lab_results"
+        elif target == "Lab Requests":
+            source = "lab_requests"
+        elif target == "Diagnoses":
+            source = "diagnoses"
+        
+        start_date = self.ids.start_date_field.text.strip()
+        end_date = self.ids.end_date_field.text.strip()
+
+        if not start_date:
+            self.show_snack("Enter start date")
+            return
+        
+        if not end_date:
+            self.show_snack("Enter end date")
+            return
+
+        if not self.is_valid_date(start_date):
+            self.show_snack("Invalid start date")
+            return
+
+        if not self.is_valid_date(end_date):
+            self.show_snack("Invalid end date")
+            return
+        
+        if datetime.strptime(end_date, "%Y-%m-%d") < datetime.strptime(start_date, "%Y-%m-%d"):
+            self.show_snack("End date must be higher than start date.")
+            return
+
+        if datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d") > timedelta(days=90):
+            self.show_snack("Too large date range. Try a lower one.")
+            return
+        
+        self.pdf_downloader.download_document(
+            source=source,
+            start_date=start_date,
+            end_date=end_date,
+            format="csv"
+        )
+    
 
     def on_enter(self):
         Thread(target=self.fetch_patients_data, daemon=True).start()

@@ -64,37 +64,65 @@ def make_display_label(text, color="blue"):
 
 store = STORE
 
-def display_tests_info(
-    test_data: dict,
-):
-    name_box = MDBoxLayout(spacing = dp(5), adaptive_height=True)
-    name_box.add_widget(MDIcon(icon="flask", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-    name_box.add_widget(make_display_label(f"Test: {test_data.get('test_name', "Unknown").upper()}"))
+def display_tests_info(test_data: dict):
 
-    desc_box = MDBoxLayout(spacing = dp(5), adaptive_height=True)
-    desc_box.add_widget(MDIcon(icon="information-outline", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-    desc_box.add_widget(make_display_label(f"Description: {test_data.get('test_desc', "unknown")}"))
-    
-    price_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    price_box.add_widget(MDIcon(icon="currency-usd", theme_icon_color = "Custom", icon_color = "blue"))
-    price_box.add_widget(make_display_label(f"Price: Ksh. {test_data.get('test_price', "unknown")}"))
+    test_name = (test_data.get("test_name") or "Unknown").upper()
+    test_desc = test_data.get("test_desc", "unknown")
+    test_price = test_data.get("test_price", "unknown")
+    date_added = test_data.get("date_added", "YY-MM-DD")
 
-    date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    date_box.add_widget(MDIcon(icon="calendar", theme_icon_color = "Custom", icon_color = "blue"))
-    date_box.add_widget(make_display_label(f"Added On: {test_data.get('date_added', "YY-MM-DD")}"))
-    
-    grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+    name_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+    name_box.add_widget(
+        MDIcon(icon="flask", pos_hint={"top": 1},
+               theme_icon_color="Custom", icon_color="blue")
+    )
+    name_box.add_widget(
+        make_display_label(f"Test: {test_name}")
+    )
+
+    desc_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+    desc_box.add_widget(
+        MDIcon(icon="information-outline", pos_hint={"top": 1},
+               theme_icon_color="Custom", icon_color="blue")
+    )
+    desc_box.add_widget(
+        make_display_label(f"Description: {test_desc}")
+    )
+
+    price_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    price_box.add_widget(
+        MDIcon(icon="currency-usd", theme_icon_color="Custom", icon_color="blue")
+    )
+    price_box.add_widget(
+        make_display_label(f"Price: Ksh. {test_price}")
+    )
+
+    date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    date_box.add_widget(
+        MDIcon(icon="calendar", theme_icon_color="Custom", icon_color="blue")
+    )
+    date_box.add_widget(
+        make_display_label(f"Added On: {date_added}")
+    )
+
+    grid = MDGridLayout(
+        cols=1,
+        padding=dp(10),
+        spacing=dp(10),
+        adaptive_height=True,
+    )
+
     scroll = MDScrollView()
     scroll.add_widget(grid)
-    
-    grid.add_widget(Widget(size_hint_y = None, height = dp(20)))
+
+    grid.add_widget(Widget(size_hint_y=None, height=dp(20)))
     grid.add_widget(name_box)
     grid.add_widget(desc_box)
     grid.add_widget(price_box)
-
     grid.add_widget(date_box)
-    
+
     return scroll
+
 
 def fetch_tests(intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
     Thread(target=fetch_and_return_online_tests, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()

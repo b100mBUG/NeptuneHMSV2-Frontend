@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('assets', 'assets'), ('config.py', '.'), ('utils.py', '.'), ('screens', 'screens')]
+datas = [('assets', 'assets'), ('screens', 'screens'), ('config.py', '.'), ('utils.py', '.')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('kivymd')

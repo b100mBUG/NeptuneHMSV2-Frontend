@@ -69,77 +69,117 @@ class PrescriptionsInfo:
         )
         return lbl
 
-    def display_prescriptions_info(
-        self,
-        presc_data: dict,
-    ):
-        name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        name_box.add_widget(self.make_display_label(f"   Patient: {presc_data.get('patient_name', "Unknown").upper()}"))
-        
-        presc_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        presc_box.add_widget(MDIcon(icon="medical-bag", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
+    def display_prescriptions_info(self, presc_data: dict):
+
+        patient_name = (presc_data.get("patient_name") or "UNKNOWN").upper()
+        entries = presc_data.get("entries") or []
+        date_added = presc_data.get("date_added", "YY-MM-DD")
+
+        name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        name_box.add_widget(
+            MDIcon(icon="account-heart", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        name_box.add_widget(
+            self.make_display_label(f"   Patient: {patient_name}")
+        )
+
+        presc_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        presc_box.add_widget(
+            MDIcon(icon="medical-bag", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
         presc_box.add_widget(
             MDLabel(
-                text = "PRESCRIPTIONS", 
-                size_hint_y = None, 
-                height = dp(30),
-                halign = "center",
-                theme_text_color = "Custom",
-                text_color = "blue"
+                text="PRESCRIPTIONS",
+                size_hint_y=None,
+                height=dp(30),
+                halign="center",
+                theme_text_color="Custom",
+                text_color="blue",
             )
         )
-        grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+
+        grid = MDGridLayout(
+            cols=1,
+            padding=dp(10),
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
         scroll = MDScrollView()
         scroll.add_widget(grid)
-        
-        grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
-        grid.add_widget(name_box)
 
-        count = 1
-        for presc in presc_data.get("entries", None):
-            count_label = MDLabel(
-                text = f"{count}. ", 
-                size_hint_y = None, 
-                height = dp(30),
-                theme_text_color = "Custom",
-                text_color = "blue"
+        grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
+        grid.add_widget(name_box)
+        grid.add_widget(presc_box)
+
+        if not entries:
+            grid.add_widget(
+                MDLabel(
+                    text="No prescriptions available",
+                    size_hint_y=None,
+                    height=dp(30),
+                    theme_text_color="Hint",
+                )
             )
-            grid.add_widget(count_label)
-            drug_label = MDLabel(
-                text = f"     Drug: {presc['drug_name']}", 
-                size_hint_y = None, 
-                height = dp(30),
-                theme_text_color = "Custom",
-                text_color = "blue"
-            )
-            grid.add_widget(drug_label)
-            qty_label = MDLabel(
-                text = f"      Qty: {presc['quantity']}", 
-                size_hint_y = None, 
-                height = dp(30),
-                theme_text_color = "Custom",
-                text_color = "blue"
-            )
-            grid.add_widget(qty_label)
-            presc_label = MDLabel(
-                text = f"    Notes: {presc['notes']}", 
-                size_hint_y = None, 
-                height = dp(30),
-                theme_text_color = "Custom",
-                text_color = "blue",
-                adaptive_height = True
-            )
-            grid.add_widget(presc_label)
-            count += 1
-        
-        
-        date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_box.add_widget(self.make_display_label(f"   Added On: {presc_data.get('date_added', "YY-MM-DD")}"))
-        
+        else:
+            for idx, presc in enumerate(entries, start=1):
+
+                drug_name = presc.get("drug_name", "Unknown")
+                quantity = presc.get("quantity", 0)
+                notes = presc.get("notes", "None")
+
+                grid.add_widget(
+                    MDLabel(
+                        text=f"{idx}.",
+                        size_hint_y=None,
+                        height=dp(30),
+                        theme_text_color="Custom",
+                        text_color="blue",
+                    )
+                )
+
+                grid.add_widget(
+                    MDLabel(
+                        text=f"     Drug: {drug_name}",
+                        size_hint_y=None,
+                        height=dp(30),
+                        theme_text_color="Custom",
+                        text_color="blue",
+                    )
+                )
+
+                grid.add_widget(
+                    MDLabel(
+                        text=f"      Qty: {quantity}",
+                        size_hint_y=None,
+                        height=dp(30),
+                        theme_text_color="Custom",
+                        text_color="blue",
+                    )
+                )
+
+                grid.add_widget(
+                    MDLabel(
+                        text=f"    Notes: {notes}",
+                        adaptive_height=True,
+                        theme_text_color="Custom",
+                        text_color="blue",
+                    )
+                )
+
+        date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_box.add_widget(
+            MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        date_box.add_widget(
+            self.make_display_label(f"   Added On: {date_added}")
+        )
+
         grid.add_widget(date_box)
-        
+
         return scroll
 
     def fetch_prescription(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):

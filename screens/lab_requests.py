@@ -95,37 +95,81 @@ class RequestsInfo:
             text_color = "blue"
     )
 
-    def display_requests_info(
-        self,
-        req_data: dict,
-    ):
-        name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        name_box.add_widget(self.make_display_label(f"   Patient: {req_data.get('patient', "Unknown")['patient_name'].upper()}"))
+    def display_requests_info(self, req_data: dict):
 
-        test_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        test_box.add_widget(MDIcon(icon="flask", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        test_box.add_widget(self.make_display_label(f"   Test: {req_data.get('test', "unknown")['test_name']}"))
-        
-        desc_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        desc_box.add_widget(MDIcon(icon="information-outline", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        desc_box.add_widget(self.make_display_label(text = f"   About: {req_data.get('test', "unknown")['test_desc']}"))
-        
-        
-        date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_box.add_widget(self.make_display_label(f"   Added On: {req_data.get('date_added', "YY-MM-DD")}"))
-        
-        grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+        patient = req_data.get("patient")
+        patient_name = (
+            patient.get("patient_name", "UNKNOWN")
+            if isinstance(patient, dict)
+            else "UNKNOWN"
+        )
+
+        test = req_data.get("test")
+        test_name = (
+            test.get("test_name", "Unknown")
+            if isinstance(test, dict)
+            else "Unknown"
+        )
+        test_desc = (
+            test.get("test_desc", "Unknown")
+            if isinstance(test, dict)
+            else "Unknown"
+        )
+
+        date_added = req_data.get("date_added", "YY-MM-DD")
+
+        name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        name_box.add_widget(
+            MDIcon(icon="account-heart", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        name_box.add_widget(
+            self.make_display_label(f"   Patient: {patient_name.upper()}")
+        )
+
+        test_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        test_box.add_widget(
+            MDIcon(icon="flask", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        test_box.add_widget(
+            self.make_display_label(f"   Test: {test_name}")
+        )
+
+        desc_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        desc_box.add_widget(
+            MDIcon(icon="information-outline", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        desc_box.add_widget(
+            self.make_display_label(f"   About: {test_desc}")
+        )
+
+        date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_box.add_widget(
+            MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        date_box.add_widget(
+            self.make_display_label(f"   Added On: {date_added}")
+        )
+
+        grid = MDGridLayout(
+            cols=1,
+            padding=dp(10),
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
         scroll = MDScrollView()
         scroll.add_widget(grid)
-        
-        grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+        grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
         grid.add_widget(name_box)
         grid.add_widget(test_box)
         grid.add_widget(desc_box)
         grid.add_widget(date_box)
-        
+
         return scroll
 
     def fetch_requests(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):

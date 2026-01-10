@@ -66,37 +66,45 @@ def make_display_label(text, color="blue"):
 
 store = STORE
 
-def display_services_info(
-    service_data: dict,
-):
-    name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    name_box.add_widget(MDIcon(icon="toolbox", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    name_box.add_widget(make_display_label(f"   Service: {service_data.get('service_name', "Unknown").upper()}"))
+def display_services_info(service_data: dict):
+    service_name = (service_data.get("service_name") or "Unknown").upper()
+    service_desc = service_data.get("service_desc", "unknown")
+    service_price = service_data.get("service_price", "unknown")
+    date_added = service_data.get("date_added", "YY-MM-DD")
 
-    desc_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    desc_box.add_widget(MDIcon(icon="information-outline", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    desc_box.add_widget(make_display_label(f"   Description: {service_data.get('service_desc', "unknown")}"))
-    
-    price_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    price_box.add_widget(MDIcon(icon="currency-usd", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    price_box.add_widget(make_display_label(f"   Price: Ksh. {service_data.get('service_price', "unknown")}"))
+    name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    name_box.add_widget(MDIcon(icon="toolbox", theme_icon_color="Custom", icon_color="blue"))
+    name_box.add_widget(make_display_label(f"Service: {service_name}"))
 
-    date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    date_box.add_widget(make_display_label(f"   Added On: {service_data.get('date_added', "YY-MM-DD")}"))
-    
-    grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+    desc_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    desc_box.add_widget(MDIcon(icon="information-outline", theme_icon_color="Custom", icon_color="blue"))
+    desc_box.add_widget(make_display_label(f"Description: {service_desc}"))
+
+    price_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    price_box.add_widget(MDIcon(icon="currency-usd", theme_icon_color="Custom", icon_color="blue"))
+    price_box.add_widget(make_display_label(f"Price: Ksh. {service_price}"))
+
+    date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    date_box.add_widget(MDIcon(icon="calendar", theme_icon_color="Custom", icon_color="blue"))
+    date_box.add_widget(make_display_label(f"Added On: {date_added}"))
+
+    grid = MDGridLayout(
+        cols=1,
+        padding=dp(10),
+        spacing=dp(10),
+        adaptive_height=True
+    )
     scroll = MDScrollView()
     scroll.add_widget(grid)
-    
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
     grid.add_widget(name_box)
     grid.add_widget(desc_box)
     grid.add_widget(price_box)
-
     grid.add_widget(date_box)
-    
+
     return scroll
+
 
 def fetch_services(intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
     Thread(target=fetch_and_return_online_services, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()

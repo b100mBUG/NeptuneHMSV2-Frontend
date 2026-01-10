@@ -74,38 +74,73 @@ class ResultsInfo:
         lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
         return lbl
 
-    def display_results_info(
-        self,
-        res_data: dict,
-    ):
-        name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        name_box.add_widget(self.make_display_label(f"   Patient: {res_data.get('patient', "Unknown")['patient_name'].upper()}"))
+    def display_results_info(self, res_data: dict):
 
-        obs_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        obs_box.add_widget(MDIcon(icon="eye", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        obs_box.add_widget(self.make_display_label(f"   Observations: {res_data.get('observaions', "unknown")}"))
-        
-        conc_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        conc_box.add_widget(MDIcon(icon="check-decagram", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        conc_box.add_widget(self.make_display_label(text = f"   About: {res_data.get('conclusion', "unknown")}"))
-        
-        
-        date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_box.add_widget(self.make_display_label(f"   Added On: {res_data.get('date_added', "YY-MM-DD")}"))
-        
-        grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+        patient = res_data.get("patient")
+        patient_name = (
+            patient.get("patient_name", "UNKNOWN")
+            if isinstance(patient, dict)
+            else "UNKNOWN"
+        )
+
+        observations = res_data.get("observations", "Unknown")
+        conclusion = res_data.get("conclusion", "Unknown")
+        date_added = res_data.get("date_added", "YY-MM-DD")
+
+        name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        name_box.add_widget(
+            MDIcon(icon="account-heart", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        name_box.add_widget(
+            self.make_display_label(f"   Patient: {patient_name.upper()}")
+        )
+
+        obs_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        obs_box.add_widget(
+            MDIcon(icon="eye", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        obs_box.add_widget(
+            self.make_display_label(f"   Observations: {observations}")
+        )
+
+        conc_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        conc_box.add_widget(
+            MDIcon(icon="check-decagram", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        conc_box.add_widget(
+            self.make_display_label(f"   Conclusion: {conclusion}")
+        )
+
+        date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_box.add_widget(
+            MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        date_box.add_widget(
+            self.make_display_label(f"   Added On: {date_added}")
+        )
+
+        grid = MDGridLayout(
+            cols=1,
+            padding=dp(10),
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
         scroll = MDScrollView()
         scroll.add_widget(grid)
-        
-        grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+        grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
         grid.add_widget(name_box)
         grid.add_widget(obs_box)
         grid.add_widget(conc_box)
         grid.add_widget(date_box)
-        
+
         return scroll
+
 
     def fetch_results(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
         Thread(target=self.fetch_and_return_online_results, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()

@@ -97,42 +97,77 @@ class DiagnosisInfo:
         )
         return lbl
 
-    def display_diagnosis_info(
-        self,
-        diag_data: dict,
-    ):
-        name_box = MDBoxLayout(spacing = dp(5), adaptive_height = True)
-        name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-        name_box.add_widget(self.make_display_label(f"Patient: {diag_data.get('patient', "Unknown")['patient_name'].upper()}"))
+    def display_diagnosis_info(self, diag_data: dict):
 
-        symptoms_box = MDBoxLayout(spacing = dp(5), adaptive_height = True)
-        symptoms_box.add_widget(MDIcon(icon="medical-bag", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-        symptoms_box.add_widget(self.make_display_label(f"Symptoms: {diag_data.get('symptoms', "unknown")}"))
-        
-        findings_box = MDBoxLayout(spacing = dp(5), adaptive_height = True)
-        findings_box.add_widget(MDIcon(icon="microscope", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-        findings_box.add_widget(self.make_display_label(text = f"Findings: {diag_data.get('findings', "unknown")}"))
-        
-        diagnosis_box = MDBoxLayout(spacing = dp(5), adaptive_height = True)
-        diagnosis_box.add_widget(MDIcon(icon="clipboard-pulse-outline", pos_hint = {"top":1}, theme_icon_color = "Custom", icon_color = "blue"))
-        diagnosis_box.add_widget(self.make_display_label(text = f"   Diagnosis: {diag_data.get('suggested_diagnosis', "0712345678")}"))
-        
-        
-        date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_box.add_widget(self.make_display_label(f"Added On: {diag_data.get('date_added', "YY-MM-DD")}"))
-        
-        grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+        patient = diag_data.get("patient")
+        patient_name = (
+            patient.get("patient_name", "UNKNOWN")
+            if isinstance(patient, dict)
+            else "UNKNOWN"
+        )
+
+        symptoms = diag_data.get("symptoms", "Unknown")
+        findings = diag_data.get("findings", "Unknown")
+        diagnosis = diag_data.get("suggested_diagnosis", "Unknown")
+        date_added = diag_data.get("date_added", "YY-MM-DD")
+
+        name_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+        name_box.add_widget(
+            MDIcon(icon="account-heart", theme_icon_color="Custom", icon_color="blue")
+        )
+        name_box.add_widget(
+            self.make_display_label(f"Patient: {patient_name.upper()}")
+        )
+
+        symptoms_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+        symptoms_box.add_widget(
+            MDIcon(icon="medical-bag", theme_icon_color="Custom", icon_color="blue")
+        )
+        symptoms_box.add_widget(
+            self.make_display_label(f"Symptoms: {symptoms}")
+        )
+
+        findings_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+        findings_box.add_widget(
+            MDIcon(icon="microscope", theme_icon_color="Custom", icon_color="blue")
+        )
+        findings_box.add_widget(
+            self.make_display_label(f"Findings: {findings}")
+        )
+
+        diagnosis_box = MDBoxLayout(spacing=dp(5), adaptive_height=True)
+        diagnosis_box.add_widget(
+            MDIcon(icon="clipboard-pulse-outline", theme_icon_color="Custom", icon_color="blue")
+        )
+        diagnosis_box.add_widget(
+            self.make_display_label(f"Diagnosis: {diagnosis}")
+        )
+
+        date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_box.add_widget(
+            MDIcon(icon="calendar", theme_icon_color="Custom", icon_color="blue")
+        )
+        date_box.add_widget(
+            self.make_display_label(f"Added On: {date_added}")
+        )
+
+        grid = MDGridLayout(
+            cols=1,
+            padding=dp(10),
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
         scroll = MDScrollView()
         scroll.add_widget(grid)
-        
-        grid.add_widget(Widget(size_hint_y = None, height = dp(30)))
+
+        grid.add_widget(Widget(size_hint_y=None, height=dp(30)))
         grid.add_widget(name_box)
         grid.add_widget(symptoms_box)
         grid.add_widget(findings_box)
         grid.add_widget(diagnosis_box)
         grid.add_widget(date_box)
-        
+
         return scroll
 
     def fetch_diagnoses(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):

@@ -67,42 +67,52 @@ def make_display_label(text, color="blue"):
 
 store = STORE
 
-def display_workers_info(
-    wrk_data: dict,
-):
-    name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    name_box.add_widget(MDIcon(icon="account-circle-outline", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    name_box.add_widget(make_display_label(f"   Worker: {wrk_data.get('worker_name', "Unknown").upper()}"))
+def display_workers_info(wrk_data: dict):
+    worker_name = (wrk_data.get("worker_name") or "Unknown").upper()
+    worker_email = wrk_data.get("worker_email", "example@gmail.com")
+    worker_phone = wrk_data.get("worker_phone", "0712345678")
+    worker_role = wrk_data.get("worker_role", "Staff")
+    date_added = wrk_data.get("date_added", "YY-MM-DD")
 
-    email_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    email_box.add_widget(MDIcon(icon="gmail", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    email_box.add_widget(make_display_label(f"   Email: {wrk_data.get('worker_email', "example@gmail.com")}"))
-    
-    phone_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    phone_box.add_widget(MDIcon(icon="phone", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    phone_box.add_widget(make_display_label(text = f"   Contact: {wrk_data.get('worker_phone', "0712345678")}"))
-    
-    role_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    role_box.add_widget(MDIcon(icon="account-tie", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    role_box.add_widget(make_display_label(text = f"   Role: {wrk_data.get('worker_role', "0712345678")}"))
-    
-    
-    date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    date_box.add_widget(make_display_label(f"   Added On: {wrk_data.get('date_added', "YY-MM-DD")}"))
-    
-    grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+    name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    name_box.add_widget(MDIcon(icon="account-circle-outline", theme_icon_color="Custom", icon_color="blue"))
+    name_box.add_widget(make_display_label(f"Worker: {worker_name}"))
+
+    email_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    email_box.add_widget(MDIcon(icon="gmail", theme_icon_color="Custom", icon_color="blue"))
+    email_box.add_widget(make_display_label(f"Email: {worker_email}"))
+
+    phone_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    phone_box.add_widget(MDIcon(icon="phone", theme_icon_color="Custom", icon_color="blue"))
+    phone_box.add_widget(make_display_label(f"Contact: {worker_phone}"))
+
+    role_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    role_box.add_widget(MDIcon(icon="account-tie", theme_icon_color="Custom", icon_color="blue"))
+    role_box.add_widget(make_display_label(f"Role: {worker_role}"))
+
+    date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    date_box.add_widget(MDIcon(icon="calendar", theme_icon_color="Custom", icon_color="blue"))
+    date_box.add_widget(make_display_label(f"Added On: {date_added}"))
+
+    grid = MDGridLayout(
+        cols=1,
+        padding=dp(10),
+        spacing=dp(10),
+        adaptive_height=True
+    )
+
     scroll = MDScrollView()
     scroll.add_widget(grid)
-    
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
     grid.add_widget(name_box)
     grid.add_widget(email_box)
     grid.add_widget(phone_box)
     grid.add_widget(role_box)
     grid.add_widget(date_box)
-    
+
     return scroll
+
 
 def fetch_workers(intent="all", sort_term="all", sort_dir="desc", search_term="ss", search_by="name", callback=None):
     Thread(target=fetch_and_return_online_workers, args=(intent, sort_term, sort_dir, search_term, search_by, callback), daemon=True).start()

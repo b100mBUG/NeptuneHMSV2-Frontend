@@ -557,6 +557,105 @@
                             size_hint_y: None
                             height: dp(500)
                             id: monthly_revenue_waterfall
+                        MDLabel:
+                            text: "Filter Reports"
+                            adaptive_height: True
+                            theme_text_color: "Custom"
+                            text_color: "blue"
+                            theme_font_size: "Custom"
+                            font_size: sp(28)
+                            bold: True
+                        MDCard:
+                            size_hint_y: None
+                            height: dp(60)
+                            style: "outlined"
+                            spacing: dp(10)
+                            size_hint_x: None
+                            width: dp(300)
+                            padding: dp(10)
+                            on_release: root.show_filter_dropdown(self)
+                            MDLabel:
+                                pos_hint: {"center_y":.5}
+                                id: filter_text
+                                text: "Appointments"
+                                halign: "center"
+                                adaptive_height: True
+                                theme_text_color: "Custom"
+                                text_color: "blue"
+                                bold: True
+                            MDIcon:
+                                pos_hint: {"center_y":.5}
+                                icon: "chevron-down"
+                                theme_icon_color: "Custom"
+                                icon_color: "blue"
+                        MDGridLayout:
+                            size_hint_y: None
+                            height: dp(60)
+                            cols: 2
+                            size_hint_x: None
+                            width: dp(500)
+                            spacing: dp(10)
+                            MDBoxLayout:
+                                spacing: dp(10)
+                                size_hint_y: None
+                                height: dp(60)
+                                MDTextField:
+                                    pos_hint: {"center_y":.5}
+                                    id: start_date_field
+                                    MDTextFieldHintText:
+                                        text: "Start Date"
+                                MDIconButton:
+                                    pos_hint: {"center_y":.5}
+                                    on_release: root.show_date_picker(start_date_field)
+                                    icon: "chevron-down"
+                                    theme_icon_color: "Custom"
+                                    icon_color: "blue"
+                            MDBoxLayout:
+                                spacing: dp(10)
+                                size_hint_y: None
+                                height: dp(60)
+                                MDTextField:
+                                    id: end_date_field
+                                    pos_hint: {"center_y":.5}
+                                    MDTextFieldHintText:
+                                        text: "End Date"
+                                MDIconButton:
+                                    icon: "chevron-down"
+                                    on_release: root.show_date_picker(end_date_field)
+                                    pos_hint: {"center_y":.5}
+                                    theme_icon_color: "Custom"
+                                    icon_color: "blue"
+                        MDBoxLayout:
+                            size_hint_y: None
+                            height: dp(150)
+                            padding: dp(10)
+                            spacing: dp(20)
+                            MDExtendedFabButton:
+                                pos_hint: {"center_y":.5}
+                                fab_state: "expand"
+                                on_release: root.download_filter_doc_pdf()
+                                MDExtendedFabButtonIcon:
+                                    icon: "file-pdf-box"
+                                    theme_icon_color: "Custom"
+                                    icon_color: "green"
+                                MDExtendedFabButtonText:
+                                    text: "Download PDF"
+                                    theme_text_color: "Custom"
+                                    text_color: "green"
+                            MDExtendedFabButton:
+                                pos_hint: {"center_y":.5}
+                                fab_state: "expand"
+                                on_release: root.download_filter_doc_csv()
+                                MDExtendedFabButtonIcon:
+                                    icon: "file-delimited"
+                                    theme_icon_color: "Custom"
+                                    icon_color: "green"
+                                MDExtendedFabButtonText:
+                                    text: "Download CSV"
+                                    theme_text_color: "Custom"
+                                    text_color: "green"
+                            Widget:
+                        Widget:
 
             
             MDDivider:
@@ -610,6 +709,7 @@
                     MDExtendedFabButton:
                         pos_hint: {"center_y":.5}
                         fab_state: "expand"
+                        id: csv_downloader
                         MDExtendedFabButtonIcon:
                             icon: "file-delimited"
                             theme_icon_color: "Custom"
@@ -619,8 +719,3 @@
                             theme_text_color: "Custom"
                             text_color: "green"
                     Widget:
-
-                        
-
-
-

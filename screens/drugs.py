@@ -60,75 +60,109 @@ def make_display_label(text):
 
 store = STORE
 
-def display_drugs_info(
-    drug_data: dict,
-):
-    name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    name_box.add_widget(MDIcon(icon="pill", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    name_box.add_widget(make_display_label(f"   Drug: {drug_data.get('drug_name', "Unknown").upper()}"))
+def display_drugs_info(drug_data: dict):
 
-    category_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    category_box.add_widget(MDIcon(icon="shape", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    category_box.add_widget(make_display_label(f"   Category: {drug_data.get('drug_category', "unknown")}"))
-    
-    description_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    description_box.add_widget(MDIcon(icon="information-outline", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    description_box.add_widget(make_display_label(f"   Description: {drug_data.get('drug_desc', "unknown")}"))
-    
-    quantity_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    quantity_box.add_widget(MDIcon(icon="counter", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    quantity_box.add_widget(make_display_label(text = f"   Quantity: {drug_data.get('drug_quantity', 0)}"))
-    
-    price_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    price_box.add_widget(MDIcon(icon="currency-usd", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    price_box.add_widget(make_display_label(text = f"   Price: {drug_data.get('drug_price', 0.0)}"))
-    
-    expiry_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    expiry_box.add_widget(MDIcon(icon="calendar-clock", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    expiry_box.add_widget(make_display_label(text = f"   Expires on: {drug_data.get('drug_expiry', "YY-MM-DD")}"))
-    
-    status_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
+    drug_name = (drug_data.get("drug_name") or "Unknown").upper()
+    drug_category = drug_data.get("drug_category", "unknown")
+    drug_desc = drug_data.get("drug_desc", "unknown")
+
+    quantity = drug_data.get("drug_quantity") or 0
+    price = drug_data.get("drug_price") or 0.0
+    date_added = drug_data.get("date_added", "YY-MM-DD")
+
+    expiry_raw = drug_data.get("drug_expiry")
+    expiry_date = None
+
+    try:
+        if expiry_raw:
+            expiry_date = datetime.strptime(expiry_raw, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        expiry_date = None
+
+    is_safe = expiry_date is not None and expiry_date.date() > datetime.today().date()
+    is_sufficient = quantity > 0
+
+    name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    name_box.add_widget(MDIcon(icon="pill", pos_hint={"center_y": .5},
+                               theme_icon_color="Custom", icon_color="blue"))
+    name_box.add_widget(make_display_label(f"   Drug: {drug_name}"))
+
+    category_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    category_box.add_widget(MDIcon(icon="shape", pos_hint={"center_y": .5},
+                                   theme_icon_color="Custom", icon_color="blue"))
+    category_box.add_widget(make_display_label(f"   Category: {drug_category}"))
+
+    description_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    description_box.add_widget(MDIcon(icon="information-outline", pos_hint={"center_y": .5},
+                                      theme_icon_color="Custom", icon_color="blue"))
+    description_box.add_widget(make_display_label(f"   Description: {drug_desc}"))
+
+    quantity_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    quantity_box.add_widget(MDIcon(icon="counter", pos_hint={"center_y": .5},
+                                   theme_icon_color="Custom", icon_color="blue"))
+    quantity_box.add_widget(make_display_label(f"   Quantity: {quantity}"))
+
+    price_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    price_box.add_widget(MDIcon(icon="currency-usd", pos_hint={"center_y": .5},
+                                theme_icon_color="Custom", icon_color="blue"))
+    price_box.add_widget(make_display_label(f"   Price: {price}"))
+
+    expiry_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    expiry_box.add_widget(MDIcon(icon="calendar-clock", pos_hint={"center_y": .5},
+                                 theme_icon_color="Custom", icon_color="blue"))
+    expiry_text = expiry_raw if expiry_raw else "Unknown"
+    expiry_box.add_widget(make_display_label(f"   Expires On: {expiry_text}"))
+
+    status_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
     status_box.add_widget(
         MDIcon(
-            icon="check" if datetime.strptime(drug_data.get("drug_expiry"), "%Y-%m-%d") > datetime.today() else "cancel", 
-            pos_hint = {"center_y":.5}, 
-            theme_icon_color = "Custom", 
-            icon_color = "green" if datetime.strptime(drug_data.get("drug_expiry"), "%Y-%m-%d") > datetime.today() else "red"
+            icon="check" if is_safe else "cancel",
+            pos_hint={"center_y": .5},
+            theme_icon_color="Custom",
+            icon_color="green" if is_safe else "red",
         )
     )
     status_box.add_widget(
         MDLabel(
-            text = "Safe to use" if datetime.strptime(drug_data.get("drug_expiry"), "%Y-%m-%d") > datetime.today() else "Expired",
-            theme_text_color = "Custom",
-            text_color = "green" if datetime.strptime(drug_data.get("drug_expiry"), "%Y-%m-%d") > datetime.today() else "red"
+            text="Safe to use" if is_safe else "Expired / Unknown",
+            theme_text_color="Custom",
+            text_color="green" if is_safe else "red",
         )
     )
-    sufficient_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
+
+    sufficient_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
     sufficient_box.add_widget(
         MDIcon(
-            icon="check" if drug_data.get("drug_quantity") > 0 else "cancel", 
-            pos_hint = {"center_y":.5}, 
-            theme_icon_color = "Custom", 
-            icon_color = "green" if drug_data.get("drug_quantity") > 0 else "red"
+            icon="check" if is_sufficient else "cancel",
+            pos_hint={"center_y": .5},
+            theme_icon_color="Custom",
+            icon_color="green" if is_sufficient else "red",
         )
     )
     sufficient_box.add_widget(
         MDLabel(
-            text = "Sufficient" if drug_data.get("drug_quantity") > 0 else "Depleted",
-            theme_text_color = "Custom",
-            text_color = "green" if drug_data.get("drug_quantity") > 0 else "red"
+            text="Sufficient" if is_sufficient else "Depleted",
+            theme_text_color="Custom",
+            text_color="green" if is_sufficient else "red",
         )
     )
-    
-    date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-    date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-    date_box.add_widget(make_display_label(f"   Added On: {drug_data.get('date_added', "YY-MM-DD")}"))
-    
-    grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+
+    date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+    date_box.add_widget(MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                               theme_icon_color="Custom", icon_color="blue"))
+    date_box.add_widget(make_display_label(f"   Added On: {date_added}"))
+
+    grid = MDGridLayout(
+        cols=1,
+        padding=dp(10),
+        spacing=dp(10),
+        adaptive_height=True,
+    )
+
     scroll = MDScrollView()
     scroll.add_widget(grid)
-    
-    grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+    grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
     grid.add_widget(name_box)
     grid.add_widget(category_box)
     grid.add_widget(description_box)
@@ -138,7 +172,7 @@ def display_drugs_info(
     grid.add_widget(status_box)
     grid.add_widget(sufficient_box)
     grid.add_widget(date_box)
-    
+
     return scroll
 
 def fetch_drugs(intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):

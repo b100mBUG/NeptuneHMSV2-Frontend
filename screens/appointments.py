@@ -130,43 +130,84 @@ class AppointmentsInfo:
         lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
         return lbl
 
-    def display_appointments_info(
-        self,
-        app_data: dict,
-    ):
-        name_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        name_box.add_widget(MDIcon(icon="account-heart", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        name_box.add_widget(self.make_display_label(f"   Patient: {app_data.get('patient', "Unknown")['patient_name'].upper()}"))
+    def display_appointments_info(self, app_data: dict):
 
-        desc_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        desc_box.add_widget(MDIcon(icon="information-outline", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        desc_box.add_widget(self.make_display_label(f"   About: {app_data.get('appointment_desc', "unknown")}"))
-        
-        date_at_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_at_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_at_box.add_widget(self.make_display_label(text = f"   Begins On: {app_data.get('date_requested', "YY-MM-DD")}"))
-        
-        time_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        time_box.add_widget(MDIcon(icon="clock", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        time_box.add_widget(self.make_display_label(text = f"   Starts At: {app_data.get('time_requested', "00:00")}"))
-        
-        
-        date_box = MDBoxLayout(spacing = dp(5), size_hint_y = None, height = dp(40))
-        date_box.add_widget(MDIcon(icon="calendar", pos_hint = {"center_y":.5}, theme_icon_color = "Custom", icon_color = "blue"))
-        date_box.add_widget(self.make_display_label(f"   Added On: {app_data.get('date_added', "YY-MM-DD")}"))
-        
-        grid = MDGridLayout(size_hint_y = None, adaptive_height = True, cols=1, padding = dp(10), spacing = dp(10))
+        patient = app_data.get("patient")
+        patient_name = (
+            patient.get("patient_name", "UNKNOWN")
+            if isinstance(patient, dict)
+            else "UNKNOWN"
+        )
+
+        appointment_desc = app_data.get("appointment_desc", "Unknown")
+        date_requested = app_data.get("date_requested", "YY-MM-DD")
+        time_requested = app_data.get("time_requested", "00:00")
+        date_added = app_data.get("date_added", "YY-MM-DD")
+
+        name_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        name_box.add_widget(
+            MDIcon(icon="account-heart", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        name_box.add_widget(
+            self.make_display_label(f"   Patient: {patient_name.upper()}")
+        )
+
+        desc_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        desc_box.add_widget(
+            MDIcon(icon="information-outline", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        desc_box.add_widget(
+            self.make_display_label(f"   About: {appointment_desc}")
+        )
+
+        date_at_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_at_box.add_widget(
+            MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        date_at_box.add_widget(
+            self.make_display_label(f"   Begins On: {date_requested}")
+        )
+
+        time_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        time_box.add_widget(
+            MDIcon(icon="clock", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        time_box.add_widget(
+            self.make_display_label(f"   Starts At: {time_requested}")
+        )
+
+        date_box = MDBoxLayout(spacing=dp(5), size_hint_y=None, height=dp(40))
+        date_box.add_widget(
+            MDIcon(icon="calendar", pos_hint={"center_y": .5},
+                theme_icon_color="Custom", icon_color="blue")
+        )
+        date_box.add_widget(
+            self.make_display_label(f"   Added On: {date_added}")
+        )
+
+        grid = MDGridLayout(
+            cols=1,
+            padding=dp(10),
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
         scroll = MDScrollView()
         scroll.add_widget(grid)
-        
-        grid.add_widget(Widget(size_hint_y = None, height = dp(10)))
+
+        grid.add_widget(Widget(size_hint_y=None, height=dp(10)))
         grid.add_widget(name_box)
         grid.add_widget(desc_box)
         grid.add_widget(date_at_box)
         grid.add_widget(time_box)
         grid.add_widget(date_box)
-        
+
         return scroll
+
 
     def fetch_apps(self, intent="all", sort_term="all", sort_dir="desc", search_term="ss", callback=None):
         Thread(target=self.fetch_and_return_online_apps, args=(intent, sort_term, sort_dir, search_term, callback), daemon=True).start()

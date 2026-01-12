@@ -150,6 +150,15 @@ def services_add_form():
     content.add_widget(service_name)
     content.add_widget(service_desc)
     content.add_widget(service_price)
+
+    add_btn = MDIconButton(
+        icon="check", 
+        theme_icon_color="Custom", 
+        icon_color="white",
+        theme_bg_color = "Custom",
+        md_bg_color = "blue",
+        on_release = lambda *a: prepare_service_data(add_btn)
+    )
     
     service_dialog = MDDialog(
         MDDialogIcon(icon = "toolbox", theme_icon_color="Custom", icon_color="blue"),
@@ -157,14 +166,7 @@ def services_add_form():
         content,
         MDDialogButtonContainer(
             Widget(),
-            MDIconButton(
-                icon="check", 
-                theme_icon_color="Custom", 
-                icon_color="white",
-                theme_bg_color = "Custom",
-                md_bg_color = "blue",
-                on_release = lambda *a: prepare_service_data()
-            ),
+            add_btn,
             MDIconButton(
                 icon="close", 
                 theme_icon_color="Custom", 
@@ -180,7 +182,7 @@ def services_add_form():
     )
     service_dialog.open()
     
-    def prepare_service_data():
+    def prepare_service_data(add_btn):
         if not service_name.text.strip():
             show_snack("Enter service name")
             return
@@ -196,17 +198,20 @@ def services_add_form():
             'service_desc': service_desc.text.strip(),
             'service_price': float(service_price.text.strip())
         }
-        submit_service_data(data)
-def submit_service_data(data):
+        add_btn.disabled = True
+        submit_service_data(data, add_btn)
+def submit_service_data(data, add_btn):
     show_snack("Please wait as service is added")
-    Thread(target=add_service, args=(data,), daemon=True).start()
+    Thread(target=add_service, args=(data, add_btn), daemon=True).start()
 
-def add_service(data):
+def add_service(data, add_btn):
     url = f"{SERVER_URL}services/services-add/?hospital_id={store.get('hospital')['hsp_id']}"
     response = requests.post(url, json=data)
     if response.status_code != 200:
         show_snack("Failed to sync service")
+        add_btn.disabled = False
         return
+    add_btn.disabled = False
     show_snack("Service synced successfully")
 
 def make_text_field(field_name, field_icon, field_text=None):

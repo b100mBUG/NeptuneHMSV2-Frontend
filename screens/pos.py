@@ -2,16 +2,18 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.metrics import dp, sp
 from kivy.uix.textinput import TextInput
+from kivy.clock import mainthread
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from kivymd.uix.list import MDListItem, MDListItemHeadlineText, MDListItemSupportingText, MDListItemTertiaryText, MDListItemLeadingIcon
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
-from kivymd.uix.dialog import MDDialog, MDDialogContentContainer, MDDialogButtonContainer, MDDialogHeadlineText, MDDialogIcon
+from kivymd.uix.dialog import MDDialog, MDDialogContentContainer, MDDialogButtonContainer, MDDialogHeadlineText, MDDialogIcon, MDDialogSupportingText
 from kivymd.uix.widget import Widget
 
 from screens.drugs import fetch_drugs, start_drug_sale
@@ -64,6 +66,7 @@ class POSScreen(MDScreen):
 
     
     def show_drugs(self):
+        self.show_spinner("Please wait as drugs are fetched...")
         self.ids.search_field.unbind(text=self.search_drugs)
         self.ids.search_field.bind(text=lambda instance, value: self.search_drugs())
         
@@ -71,7 +74,9 @@ class POSScreen(MDScreen):
         def on_drugs_fetched(drugs):
             if not drugs:
                 self.show_snack("Drugs not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("DrugItemRow", drugs, "worker", self.drugs_mapper)
         
         fetch_drugs("all", "all", "desc", callback=on_drugs_fetched)
@@ -352,3 +357,25 @@ class POSScreen(MDScreen):
             size_hint_x=0.5, 
             orientation='horizontal'
         ).open()
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()

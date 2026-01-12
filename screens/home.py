@@ -8,6 +8,7 @@ from kivy.properties import StringProperty
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.dialog import MDDialog, MDDialogContentContainer, MDDialogButtonContainer, MDDialogHeadlineText, MDDialogIcon, MDDialogSupportingText
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.widget import Widget
@@ -119,16 +120,40 @@ class HomeScreen(MDScreen):
         self.worker_email = worker_email
 
     def show_consultants(self):
+        self.show_spinner()
         def on_workers_fetched(workers):
             if not workers:
-                print("Workers not found: ", workers)
+                self.show_snack("Accounts not found.")
+                self.dismiss_spinner()
                 return
-            print(workers)
             self.consultants = workers
             self.make_consultants_container(self.role)
+            self.dismiss_spinner()
         
         fetch_workers("all", "all", "desc", callback=on_workers_fetched)
         
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()
 
     
     def search_workers(self, *args):
@@ -214,6 +239,8 @@ class HomeScreen(MDScreen):
             self.show_snack("Enter password")
             return
 
+        self.show_spinner("Please wait as we sign you in...")
+
         data = {
             "hospital_email": self.hospital_name_field.text.strip(),
             "hospital_password": password
@@ -223,6 +250,7 @@ class HomeScreen(MDScreen):
     
     def on_hsp_login_success(self, hsp_data: dict):
         self.hospital_signin_dialog.dismiss()
+        self.dismiss_spinner()
         if not hsp_data:
             self.show_snack("Hospital data not found")
             return
@@ -495,6 +523,8 @@ class HomeScreen(MDScreen):
             self.show_snack("Password Mismatch")
             return
         
+        self.show_spinner("Please wait as we register you...")
+
         hosp_data = {
             "hospital_name": hosp_name,
             "hospital_email": hosp_email,
@@ -509,6 +539,7 @@ class HomeScreen(MDScreen):
         self.new_hospital_dialog.dismiss()
         if hasattr(self, "hospital_signin_dialog"):
             self.hospital_signin_dialog.dismiss()
+            self.dismiss_spinner()
             
         Clock.schedule_once(self.hospital_signin_form, 2)
     
@@ -558,17 +589,21 @@ class HomeScreen(MDScreen):
 
 
     def start_plan_renewal(self, key):
+        self.show_spinner("Please wait as we renew your plan...")
         try:
             url = f"{SERVER_URL}hospitals/renew-activation/?hospital_id={self.store.get('hospital')['hsp_id']}&activation_key={key}"
             response = requests.put(url, timeout=3).json()
 
             if response.get("message") == "renewed":
                 self.subscription_dialog.dismiss()
+                self.dismiss_spinner()
                 self.show_snack("Your plan renewed! Enjoy :-)")
                 self.update_plan()
             else:
+                self.dismiss_spinner()
                 self.show_snack(response.get("message", "Renewal failed"))
         except Exception as e:
+            self.dismiss_spinner()
             self.show_snack(f"Error: {e}")
 
 

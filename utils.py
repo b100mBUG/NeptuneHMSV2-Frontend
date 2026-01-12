@@ -1,6 +1,8 @@
 import asyncio
 from threading import Thread
 from kivy.clock import mainthread
+from kivy.metrics import dp, sp
+
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from config import STORE, SERVER_URL
 import requests
@@ -88,4 +90,3 @@ class PDFDownloader:
             size_hint_x=0.5,
             orientation='horizontal'
         ).open()
-

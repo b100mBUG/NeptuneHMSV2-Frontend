@@ -30,7 +30,6 @@ class NeptuneHMS(MDApp):
         return self.sm
 
 def pinger():
-    print("Starting pinging...")
     url = "https://neptunev2.onrender.com/hospitals/hospitals-fetch/?sort_term=all&sort_dir=desc"
     while True:
         try:

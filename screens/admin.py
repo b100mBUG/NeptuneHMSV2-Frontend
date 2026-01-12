@@ -7,6 +7,7 @@ from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from kivymd.uix.button import MDIconButton, MDButton, MDButtonIcon, MDButtonText
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
@@ -113,6 +114,7 @@ class AdminScreen(MDScreen):
     def show_patients(self):
         self.current_search_callback = self.search_patients
         self.ids.disp_view.clear_widgets()
+        self.show_spinner()
         self.ids.sort_btn.disabled = False
         self.ids.add_btn.on_release = lambda *a: patients_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_pat_sort_dropdown(self.ids.sort_btn)
@@ -120,8 +122,10 @@ class AdminScreen(MDScreen):
         
         def on_patients_fetched(patients):
             if not patients:
+                self.dismiss_spinner()
                 self.show_snack("Patients not found")
                 return
+            self.dismiss_spinner()
             self.display_items("PatientsRow", patients, "patient", self.patients_mapper)
         
         fetch_patients("all", "all", "desc", callback=on_patients_fetched)
@@ -264,13 +268,16 @@ class AdminScreen(MDScreen):
         self.current_search_callback = self.search_workers
         self.ids.disp_view.clear_widgets()
         self.ids.sort_btn.disabled = False
+        self.show_spinner()
         self.ids.add_btn.on_release = lambda *a: workers_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_wrk_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
         def on_workers_fetched(workers):
             if not workers:
                 self.show_snack("Workers not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("WorkersRow", workers, "worker", self.workers_mapper)
         
         fetch_workers("all", "all", "desc", callback=on_workers_fetched)
@@ -412,13 +419,16 @@ class AdminScreen(MDScreen):
         self.current_search_callback = self.search_drugs
         self.ids.disp_view.clear_widgets()
         self.ids.sort_btn.disabled = False
+        self.show_spinner()
         self.ids.add_btn.on_release = lambda *a: drugs_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_drug_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
         def on_drugs_fetched(drugs):
             if not drugs:
                 self.show_snack("Drugs not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("DrugsRow", drugs, "worker", self.drugs_mapper)
         
         fetch_drugs("all", "all", "desc", callback=on_drugs_fetched)
@@ -565,10 +575,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: DiagnosisInfo().diagnoses_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_diags_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_diags_fetched(diags):
             if not diags:
                 self.show_snack("Diagnosis not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("DiagnosisRow", diags, "diag", self.diagnosis_mapper)
         
         DiagnosisInfo().fetch_diagnoses("all", "all", "desc", callback=on_diags_fetched)
@@ -715,10 +728,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: PrescriptionsInfo().prescriptions_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_prescs_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_prescs_fetched(prescs):
             if not prescs:
                 self.show_snack("prescription not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("PrescriptionsRow", prescs, "diag", self.prescriptions_mapper)
         
         PrescriptionsInfo().fetch_prescription("all", "all", "desc", callback=on_prescs_fetched)
@@ -860,10 +876,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: AppointmentsInfo().apps_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_apps_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_apps_fetched(apps):
             if not apps:
                 self.show_snack("Appointments not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("AppointmentsRow", apps, "diag", self.appointments_mapper)
         
         AppointmentsInfo().fetch_apps("all", "all", "desc", callback=on_apps_fetched)
@@ -1009,10 +1028,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: services_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_service_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_services_fetched(drugs):
             if not drugs:
                 self.show_snack("Services not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("ServicesRow", drugs, "service", self.services_mapper)
         
         fetch_services("all", "all", "desc", callback=on_services_fetched)
@@ -1159,10 +1181,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: tests_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_test_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_tests_fetched(drugs):
             if not drugs:
                 self.show_snack("tests not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("TestsRow", drugs, "test", self.tests_mapper)
         
         fetch_tests("all", "all", "desc", callback=on_tests_fetched)
@@ -1311,10 +1336,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: RequestsInfo().requests_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_request_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_requests_fetched(drugs):
             if not drugs:
                 self.show_snack("Requests not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("RequestsRow", drugs, "request", self.requests_mapper)
         
         RequestsInfo().fetch_requests("all", "all", "desc", callback=on_requests_fetched)
@@ -1456,10 +1484,13 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: ResultsInfo().results_add_form()
         self.ids.sort_btn.on_release = lambda *a: self.show_result_sort_dropdown(self.ids.sort_btn)
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         def on_results_fetched(drugs):
             if not drugs:
-                self.show_snack("results not found")
+                self.show_snack("Results not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("ResultsRow", drugs, "result", self.results_mapper)
         
         ResultsInfo().fetch_results("all", "all", "desc", callback=on_results_fetched)
@@ -1606,11 +1637,14 @@ class AdminScreen(MDScreen):
         self.ids.add_btn.on_release = lambda *a: BillingsInfo().show_patient_billings()
         self.ids.sort_btn.disabled = True
         self.ids.rec_box.clear_widgets()
+        self.show_spinner()
         
         def on_billings_fetched(billings):
             if not billings:
                 self.show_snack("Billings not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.display_items("BillingsRow", billings, "billings", self.billings_mapper)
         
         billings.fetch_billings("all", "", callback=on_billings_fetched)
@@ -2176,3 +2210,25 @@ class AdminScreen(MDScreen):
             size_hint_x=0.5, 
             orientation='horizontal'
         ).open()
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()

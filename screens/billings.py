@@ -6,13 +6,14 @@ from kivy.uix.recycleview import RecycleView
 from kivy.metrics import dp, sp
 
 from kivymd.uix.list import MDListItem, MDListItemHeadlineText, MDListItemSupportingText, MDListItemLeadingIcon, MDListItemTertiaryText
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel, MDIcon
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 from kivymd.uix.widget import Widget
-from kivymd.uix.dialog import MDDialog, MDDialogContentContainer, MDDialogButtonContainer, MDDialogHeadlineText, MDDialogIcon
+from kivymd.uix.dialog import MDDialog, MDDialogContentContainer, MDDialogButtonContainer, MDDialogHeadlineText, MDDialogIcon, MDDialogSupportingText
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.card import MDCard
 from kivymd.uix.button import MDIconButton
@@ -188,10 +189,13 @@ class BillingsInfo:
         self.billings_dialog.open()
     
     def show_billings(self, patient_id):
+        self.show_spinner("Please wait as billings are fetched...")
         def on_billings_fetched(billings):
             if not billings:
                 self.show_snack("Billings not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.populate_billings(billings)        
         fetch_billings("patient-today", patient_id=patient_id, callback=on_billings_fetched)
     
@@ -291,9 +295,13 @@ class BillingsInfo:
         self.show_billings(patient_id)
     
     def show_patients(self):
+        self.show_spinner("Please wait as patients are fetched...")
         def on_patients_fetched(patients):
             if not patients:
+                self.show_snack("Patients not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.patients = patients
             self.make_patients_container()
         
@@ -344,3 +352,25 @@ class BillingsInfo:
             size_hint_x=0.5, 
             orientation='horizontal'
         ).open()
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()

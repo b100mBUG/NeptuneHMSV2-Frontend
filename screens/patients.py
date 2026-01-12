@@ -245,21 +245,21 @@ def patients_add_form():
     content.add_widget(patient_name)
     content.add_widget(gender_box)
     content.add_widget(dob_box)
-    
+    add_btn = MDIconButton(
+        icon="check", 
+        theme_icon_color="Custom", 
+        icon_color="white",
+        theme_bg_color = "Custom",
+        md_bg_color = "blue",
+        on_release = lambda *a: prepare_patient_data(add_btn)
+    )
     patient_dialog = MDDialog(
         MDDialogIcon(icon = "account-heart", theme_icon_color="Custom", icon_color="blue"),
         MDDialogHeadlineText(text = "Add Patient", bold=True, theme_text_color="Custom", text_color="blue"),
         content,
         MDDialogButtonContainer(
             Widget(),
-            MDIconButton(
-                icon="check", 
-                theme_icon_color="Custom", 
-                icon_color="white",
-                theme_bg_color = "Custom",
-                md_bg_color = "blue",
-                on_release = lambda *a: prepare_patient_data()
-            ),
+            add_btn,
             MDIconButton(
                 icon="close", 
                 theme_icon_color="Custom", 
@@ -275,7 +275,7 @@ def patients_add_form():
     )
     patient_dialog.open()
     
-    def prepare_patient_data():
+    def prepare_patient_data(add_btn):
         if not patient_name.text.strip():
             show_snack("Enter patient name")
             return
@@ -285,29 +285,34 @@ def patients_add_form():
         if not patient_dob.text.strip():
             show_snack("Enter patient d.o.b")
             return
+        if not is_valid_date(patient_dob.text.strip()):
+            show_snack("Invalid date passed")
+            return
         pat_dob = ""
         try:
             pat_dob = datetime.strptime(patient_dob.text.strip(), "%Y-%m-%d")
         except Exception:
-            show_snack("Invalid date passed")
+            show_snack("Invalid date passed.")
         
         data = {
             "patient_name": patient_name.text.strip(),
             'patient_gender': patient_gender.text.strip(),
             'patient_dob': pat_dob.strftime("%Y-%m-%d")
         }
-        print("Patient adding data: ", data)
-        submit_patient_data(data)
-def submit_patient_data(data):
+        add_btn.disabled = True
+        submit_patient_data(data, add_btn)
+def submit_patient_data(data, add_btn):
     show_snack("Please wait as patient is added")
-    Thread(target=add_patient, args=(data,), daemon=True).start()
+    Thread(target=add_patient, args=(data,add_btn), daemon=True).start()
 
-def add_patient(data):
+def add_patient(data, add_btn):
     url = f"{SERVER_URL}patients/patients-add/?hospital_id={store.get('hospital')['hsp_id']}"
     response = requests.post(url, json=data)
     if response.status_code != 200:
-       show_snack("Failed to sync patient")
-       return
+        add_btn.disabled = False
+        show_snack("Failed to sync patient")
+        return
+    add_btn.disabled = False
     show_snack("Patient synced successfully.")
 
 def make_text_field(field_name, field_icon, field_text=None):
@@ -558,3 +563,9 @@ def show_snack(text):
         size_hint_x=0.5, 
         orientation='horizontal'
     ).open()
+def is_valid_date(date_str):
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False

@@ -161,20 +161,22 @@ def workers_add_form():
     content.add_widget(worker_name)
     content.add_widget(role_box)
     
+    add_btn = MDIconButton(
+        icon="check", 
+        theme_icon_color="Custom", 
+        icon_color="white",
+        theme_bg_color = "Custom",
+        md_bg_color = "blue",
+        on_release = lambda *a: prepare_worker_data(add_btn)
+    )
+
     worker_dialog = MDDialog(
         MDDialogIcon(icon = "account-circle-outline", theme_icon_color="Custom", icon_color="blue"),
         MDDialogHeadlineText(text = "Add Worker", bold=True, theme_text_color="Custom", text_color="blue"),
         content,
         MDDialogButtonContainer(
             Widget(),
-            MDIconButton(
-                icon="check", 
-                theme_icon_color="Custom", 
-                icon_color="white",
-                theme_bg_color = "Custom",
-                md_bg_color = "blue",
-                on_release = lambda *a: prepare_worker_data()
-            ),
+            add_btn,
             MDIconButton(
                 icon="close", 
                 theme_icon_color="Custom", 
@@ -190,7 +192,7 @@ def workers_add_form():
     )
     worker_dialog.open()
     
-    def prepare_worker_data():
+    def prepare_worker_data(add_btn):
         if not worker_name.text.strip():
             show_snack("Enter worker name")
             return
@@ -202,17 +204,20 @@ def workers_add_form():
             "worker_name": worker_name.text.strip(),
             'worker_role': worker_role.text.strip(),
         }
-        submit_worker_data(data)
-def submit_worker_data(data):
+        add_btn.disabled = True
+        submit_worker_data(data, add_btn)
+def submit_worker_data(data, add_btn):
     show_snack("Please wait as worker is added")
-    Thread(target=add_worker, args=(data,), daemon=True).start()
+    Thread(target=add_worker, args=(data,add_btn), daemon=True).start()
 
-def add_worker(data):
+def add_worker(data, add_btn):
     url = f"{SERVER_URL}workers/workers-add/?hospital_id={store.get('hospital')['hsp_id']}"
     response = requests.post(url, json=data)
     if response.status_code != 200:
         show_snack("Failed to sync worker")
+        add_btn.disabled = False
         return
+    add_btn.disabled = False
     show_snack("Worker synced successfully")
 
 def make_text_field(field_name, field_icon, field_text=None):

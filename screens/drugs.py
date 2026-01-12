@@ -233,21 +233,22 @@ def drugs_add_form():
     content.add_widget(drug_qty)
     content.add_widget(drug_price)
     content.add_widget(exp_box)
-    
+    add_btn = MDIconButton(
+        icon="check", 
+        theme_icon_color="Custom", 
+        icon_color="white",
+        theme_bg_color = "Custom",
+        md_bg_color = "blue",
+        on_release = lambda *a: prepare_drug_data(add_btn)
+    )
+
     drug_dialog = MDDialog(
         MDDialogIcon(icon = "pill", theme_icon_color="Custom", icon_color="blue"),
         MDDialogHeadlineText(text = "Add Drug", bold=True, theme_text_color="Custom", text_color="blue"),
         content,
         MDDialogButtonContainer(
             Widget(),
-            MDIconButton(
-                icon="check", 
-                theme_icon_color="Custom", 
-                icon_color="white",
-                theme_bg_color = "Custom",
-                md_bg_color = "blue",
-                on_release = lambda *a: prepare_drug_data()
-            ),
+            add_btn,
             MDIconButton(
                 icon="close", 
                 theme_icon_color="Custom", 
@@ -263,7 +264,7 @@ def drugs_add_form():
     )
     drug_dialog.open()
     
-    def prepare_drug_data():
+    def prepare_drug_data(add_btn):
         if not drug_name.text.strip():
             show_snack("Enter drug name")
             return
@@ -293,17 +294,20 @@ def drugs_add_form():
             'drug_price': drug_price.text.strip(),
             'drug_expiry': drug_exp.strftime("%Y-%m-%d"),
         }
-        submit_drug_data(data)
-def submit_drug_data(data):
+        add_btn.disabled = True
+        submit_drug_data(data, add_btn)
+def submit_drug_data(data, add_btn):
     show_snack("Please wait as drug is added")
-    Thread(target=add_drug, args=(data,), daemon=True).start()
+    Thread(target=add_drug, args=(data, add_btn), daemon=True).start()
 
-def add_drug(data):
+def add_drug(data, add_btn):
     url = f"{SERVER_URL}drugs/drugs-add/?hospital_id={store.get('hospital')['hsp_id']}"
     response = requests.post(url, json=data)
     if response.status_code != 200:
         show_snack("Failed to sync drug")
+        add_btn.disabled = False
         return
+    add_btn.disabled = False
     show_snack("Drug synced successfully")
 
 def make_text_field(field_name, field_icon, field_text=None):
@@ -320,7 +324,7 @@ def drug_edit_form(drug: dict):
     drug_desc = make_text_field("Description", "information-outline", drug.get("drug_desc", None))
     drug_quantity = make_text_field("Quantity", "counter", drug.get("drug_quantity", None))   
     drug_price = make_text_field("Price", "currency-usd", drug.get("drug_price", None))   
-    drug_expiry = make_text_field("Expiry", "calendar-clock", drug.get("drug_expiry", None))   
+    drug_expiry = make_text_field("Expiry", "ca,lendar-clock", drug.get("drug_expiry", None))   
 
     exp_box = MDBoxLayout(size_hint_y = None, height = dp(60), spacing = dp(5))
     exp_box.add_widget(drug_expiry)

@@ -12,6 +12,7 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.divider import MDDivider
 from kivymd.uix.list import MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemSupportingText, MDListItemTertiaryText
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog, MDDialogButtonContainer, MDDialogContentContainer, MDDialogHeadlineText, MDDialogIcon, MDDialogSupportingText
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText, MDTextFieldLeadingIcon
@@ -309,21 +310,21 @@ class AppointmentsInfo:
         content.add_widget(consultant_box)
         content.add_widget(date_box)
         content.add_widget(time_box)
-        
+        self.add_button = MDIconButton(
+            icon="check", 
+            theme_icon_color="Custom", 
+            icon_color="white",
+            theme_bg_color = "Custom",
+            md_bg_color = "blue",
+            on_release = lambda *a: self.prepare_apps_data()
+        )
         self.apps_dialog = MDDialog(
             MDDialogIcon(icon = "clock", theme_icon_color="Custom", icon_color="blue"),
             MDDialogHeadlineText(text = "Add Appointment", bold=True, theme_text_color="Custom", text_color="blue"),
             content,
             MDDialogButtonContainer(
                 Widget(),
-                MDIconButton(
-                    icon="check", 
-                    theme_icon_color="Custom", 
-                    icon_color="white",
-                    theme_bg_color = "Custom",
-                    md_bg_color = "blue",
-                    on_release = lambda *a: self.prepare_apps_data()
-                ),
+                self.add_button,
                 MDIconButton(
                     icon="close", 
                     theme_icon_color="Custom", 
@@ -376,8 +377,7 @@ class AppointmentsInfo:
             "date_scheduled": new_date_scheduled,
             "time_scheduled": time_scheduled,
         }
-
-        print("Data submitted: ", data)
+        self.add_button.disabled = True
         self.submit_apps_data(data)
     def submit_apps_data(self, data):
         self.show_snack("Please wait as appointment is added")
@@ -387,8 +387,10 @@ class AppointmentsInfo:
         url = f"{SERVER_URL}appointments/appointments-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
         response = requests.post(url, json=data)
         if response.status_code != 200:
+            self.add_button.disabled = False
             self.show_snack("Failed to sync appointment")
             return
+        self.add_button.disabled = False
         self.show_snack("Appointment synced to cloud.")
 
     def make_text_field(self, field_name, field_icon, field_text=None):
@@ -851,9 +853,13 @@ class AppointmentsInfo:
         ).open()
 
     def show_patients(self):
+        self.show_spinner("Please wait as patients are fetched...")
         def on_patients_fetched(patients):
             if not patients:
+                self.show_snack("Patients not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.patients = patients
             self.make_patients_container()
         
@@ -898,9 +904,13 @@ class AppointmentsInfo:
     
     
     def show_services(self):
+        self.show_spinner("Please wait as services are fetched...")
         def on_services_fetched(services):
             if not services:
+                self.show_snack("Services not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.services = services
             self.make_services_container()
         
@@ -943,9 +953,13 @@ class AppointmentsInfo:
             ]
     
     def show_consultants(self):
+        self.show_spinner("Please wait as consultants are fetched...")
         def on_workers_fetched(workers):
             if not workers:
+                self.show_snack("Consultants not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.consultants = workers
             self.make_consultants_container()
         
@@ -985,3 +999,25 @@ class AppointmentsInfo:
                 }
                 for c in (self.consultants or [])
             ]
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()

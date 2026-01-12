@@ -1,8 +1,8 @@
 from kivy.storage.jsonstore import JsonStore
 import os, sys, platform
 
-#SERVER_URL = "https://neptunev2.onrender.com/"
-SERVER_URL = "http://127.0.0.1:8000/"
+SERVER_URL = "https://neptunev2.onrender.com/"
+#SERVER_URL = "http://127.0.0.1:8000/"
 
 
 def get_app_data_path(filename):

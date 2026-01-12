@@ -12,6 +12,7 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.divider import MDDivider
 from kivymd.uix.list import MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemSupportingText, MDListItemTertiaryText
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog, MDDialogButtonContainer, MDDialogContentContainer, MDDialogHeadlineText, MDDialogIcon, MDDialogSupportingText
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText, MDTextFieldLeadingIcon
@@ -197,6 +198,14 @@ class ResultsInfo:
         content.add_widget(name_box)
         content.add_widget(self.new_obs)
         content.add_widget(self.new_conc)
+        self.add_button = MDIconButton(
+            icon="check", 
+            theme_icon_color="Custom", 
+            icon_color="white",
+            theme_bg_color = "Custom",
+            md_bg_color = "blue",
+            on_release = lambda *a: self.prepare_result_data()
+        )
         
         self.results_dialog = MDDialog(
             MDDialogIcon(icon = "clipboard-check", theme_icon_color="Custom", icon_color="blue"),
@@ -204,14 +213,7 @@ class ResultsInfo:
             content,
             MDDialogButtonContainer(
                 Widget(),
-                MDIconButton(
-                    icon="check", 
-                    theme_icon_color="Custom", 
-                    icon_color="white",
-                    theme_bg_color = "Custom",
-                    md_bg_color = "blue",
-                    on_release = lambda *a: self.prepare_result_data()
-                ),
+                self.add_button,
                 MDIconButton(
                     icon="close", 
                     theme_icon_color="Custom", 
@@ -243,6 +245,7 @@ class ResultsInfo:
             'observations': self.new_obs.text.strip(),
             'conclusion': self.new_conc.text.strip()
         }
+        self.add_button.disabled = True
         self.submit_result_data(data)
     def submit_result_data(self, data):
         self.show_snack("Please wait as result is added")
@@ -252,8 +255,10 @@ class ResultsInfo:
         url = f"{SERVER_URL}lab_results/lab_results-add/?hospital_id={self.store.get('hospital')['hsp_id']}"
         response = requests.post(url, json=data)
         if response.status_code != 200:
+            self.add_button.disabled = False
             self.show_snack("Failed to sync result")
             return
+        self.add_button.disabled = False
         self.show_snack("Result synced successfully. You can refresh the page to view them")
 
     def confirm_deletion_form(self, res_id):
@@ -392,9 +397,13 @@ class ResultsInfo:
         ).open()
 
     def show_patients(self):
+        self.show_spinner("Please wait as patients are fetched...")
         def on_patients_fetched(patients):
             if not patients:
+                self.show_snack("Patients not found")
+                self.dismiss_spinner()
                 return
+            self.dismiss_spinner()
             self.patients = patients
             self.make_patients_container()
         
@@ -502,3 +511,26 @@ class ResultsInfo:
             self.show_snack("Failed to sync result")
             return
         self.show_snack("Result synced successfully. You can refresh the page to view them")
+
+    @mainthread
+    def show_spinner(self, display_text: str | None = "Please wait as data is fetched..."):
+        spinner = MDCircularProgressIndicator(
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+        )
+        self.spinner_dialog = MDDialog(
+            MDDialogIcon(icon="clock", theme_icon_color="Custom", icon_color="blue"),
+            MDDialogHeadlineText(text = "Loading...", theme_text_color = "Custom", text_color="blue", bold=True),
+            MDDialogSupportingText(text= display_text, theme_text_color = "Custom", text_color="blue"),
+            MDDialogContentContainer(
+                spinner,
+                orientation="vertical"
+            ),
+            auto_dismiss = False
+        )
+        self.spinner_dialog.open()
+    
+    @mainthread
+    def dismiss_spinner(self):
+        self.spinner_dialog.dismiss()
